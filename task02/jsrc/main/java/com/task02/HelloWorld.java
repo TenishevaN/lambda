@@ -43,14 +43,13 @@ import java.util.function.Function;
 )
 public class HelloWorld implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
     private static final int SC_OK = 200;
-    private static final int SC_NOT_FOUND = 404;
+    private static final int SC_NOT_FOUND = 400;
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private final Map<String, String> responseHeaders = Map.of("Content-Type", "application/json");
 
     @Override
     public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent requestEvent, Context context) {
 
-        System.out.println("requestEvent.getRequestContext() " + requestEvent.getRequestContext());
 
         if(requestEvent.getRequestContext() == null){
             return buildResponse(SC_OK, Body.ok("Use the path /hello to get greetings message"));

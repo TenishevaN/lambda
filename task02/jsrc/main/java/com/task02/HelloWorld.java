@@ -15,7 +15,6 @@ import com.syndicate.deployment.model.DeploymentRuntime;
 import com.syndicate.deployment.model.lambda.url.AuthType;
 import com.syndicate.deployment.model.lambda.url.InvokeMode;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,42 +40,45 @@ import java.util.function.Function;
         authType = AuthType.NONE,
         invokeMode = InvokeMode.BUFFERED
 )
-public class HelloWorld implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
+public class HelloWorld implements RequestHandler<APIGatewayV2HTTPEvent, Map<String, Object>> {
     private static final int SC_OK = 200;
     private static final int SC_NOT_FOUND = 400;
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private final Map<String, String> responseHeaders = Map.of("Content-Type", "application/json");
 
-    @Override
-    public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent requestEvent, Context context) {
 
-        if(requestEvent.getRequestContext() == null){
-            return buildResponse(SC_NOT_FOUND, Body.error(String.format("Bad request syntax or unsupported method. Request path: %s. HTTP method: %s",
-                    getPath(requestEvent),
-                    getMethod(requestEvent)
-            )));
+    public Map<String, Object> handleRequest(APIGatewayV2HTTPEvent requestEvent, Context context) {
+
+        Map<String, Object> resultMap = new HashMap<String, Object>();
+        resultMap.put("statusCode", 200);
+        resultMap.put("message", "Hello from Lambda");
+
+        if (requestEvent.getRequestContext() == null) {
+            return Map.of(
+                    "statusCode", 400,
+                    "message", "Bad request syntax or unsupported method. Request path: null. HTTP method: null"
+            );
         }
 
         var path = getPath(requestEvent);
         var method = getMethod(requestEvent);
 
-        if("/hello".equals(path)){
-            return buildResponse(SC_OK, Body.ok("Hello from Lambda"));
+        if ("/hello".equals(path)) {
+            return Map.of(
+                    "statusCode", 200,
+                    "message", "Hello from Lambda"
+            );
         }
 
-        return buildResponse(SC_NOT_FOUND, Body.error(String.format("Bad request syntax or unsupported method. Request path: %s. HTTP method: %s",
-                getPath(requestEvent),
-                getMethod(requestEvent)
-        )));
+        return Map.of(
+                "statusCode", 400,
+                "message", String.format("Bad request syntax or unsupported method. Request path: %s. HTTP method: %s",
+                        getPath(requestEvent),
+                        getMethod(requestEvent)
+                )
+        );
     }
 
-    private APIGatewayV2HTTPResponse buildResponse(int statusCode, Object body) {
-        return APIGatewayV2HTTPResponse.builder()
-                .withStatusCode(statusCode)
-                .withHeaders(responseHeaders)
-                .withBody(gson.toJson(body))
-                .build();
-    }
 
     private String getMethod(APIGatewayV2HTTPEvent requestEvent) {
         return requestEvent.getRequestContext().getHttp().getMethod();
@@ -84,31 +86,5 @@ public class HelloWorld implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 
     private String getPath(APIGatewayV2HTTPEvent requestEvent) {
         return requestEvent.getRequestContext().getHttp().getPath();
-    }
-
-    private static class Body {
-        private String message;
-        private String error;
-
-        public String getMessage() {
-            return message;
-        }
-
-        public String getError() {
-            return error;
-        }
-
-        public Body(String message, String error) {
-            this.message = message;
-            this.error = error;
-        }
-
-        static Body ok(String message) {
-            return new Body(message, null);
-        }
-
-        static Body error(String error) {
-            return new Body(null, error);
-        }
     }
 }

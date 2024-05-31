@@ -51,19 +51,22 @@ public class HelloWorld implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
     public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent requestEvent, Context context) {
 
         if (requestEvent.getRequestContext() == null) {
-            return buildResponse(SC_NOT_FOUND, Body.error("Bad request syntax or unsupported method. Request path: null. HTTP method: null"));
+            return buildResponse(SC_NOT_FOUND, Map.of("statusCode", SC_NOT_FOUND,
+                                                       "message", "Bad request syntax or unsupported method. Request path: null. HTTP method: null"));
         }
 
         var path = getPath(requestEvent);
         var method = getMethod(requestEvent);
 
         if ("/hello".equals(path)) {
-            return buildResponse(SC_OK, Body.ok("Hello from Lambda"));
+            return buildResponse(SC_OK, Map.of("statusCode", SC_OK,
+                                               "message", "Hello from Lambda"));
         }
 
-        return buildResponse(SC_NOT_FOUND, Body.error(String.format("Bad request syntax or unsupported method. Request path: %s. HTTP method: %s",
-                getPath(requestEvent).replace("/", ""),
-                getMethod(requestEvent)
+        return buildResponse(SC_NOT_FOUND, Map.of("statusCode", SC_NOT_FOUND,
+                                                  "message", String.format("Bad request syntax or unsupported method. Request path: %s. HTTP method: %s",
+                                                             getPath(requestEvent).replace("/", ""),
+                                                             getMethod(requestEvent)
         )));
     }
 
@@ -81,31 +84,5 @@ public class HelloWorld implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 
     private String getPath(APIGatewayV2HTTPEvent requestEvent) {
         return requestEvent.getRequestContext().getHttp().getPath();
-    }
-
-    private static class Body {
-        private String message;
-        private String error;
-
-        public String getMessage() {
-            return message;
-        }
-
-        public String getError() {
-            return error;
-        }
-
-        public Body(String message, String error) {
-            this.message = message;
-            this.error = error;
-        }
-
-        static Body ok(String message) {
-            return new Body(message, null);
-        }
-
-        static Body error(String error) {
-            return new Body(null, error);
-        }
     }
 }

@@ -1,45 +1,29 @@
-/*
- * Copyright 2018 EPAM Systems, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.task02;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse;
+import com.syndicate.deployment.annotations.lambda.LambdaHandler;
+import com.syndicate.deployment.model.RetentionSetting;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.syndicate.deployment.annotations.lambda.LambdaHandler;
 import com.syndicate.deployment.annotations.lambda.LambdaLayer;
 import com.syndicate.deployment.annotations.lambda.LambdaUrlConfig;
 import com.syndicate.deployment.model.Architecture;
 import com.syndicate.deployment.model.ArtifactExtension;
 import com.syndicate.deployment.model.DeploymentRuntime;
-import com.syndicate.deployment.model.RetentionSetting;
 import com.syndicate.deployment.model.lambda.url.AuthType;
 import com.syndicate.deployment.model.lambda.url.InvokeMode;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
-@LambdaHandler(
-        lambdaName = "hello-world",
+@LambdaHandler(lambdaName = "hello_world",
         roleName = "hello_world-role",
+        isPublishVersion = false,
         layers = {"sdk-layer"},
         runtime = DeploymentRuntime.JAVA11,
         architecture = Architecture.ARM64,
@@ -56,56 +40,38 @@ import java.util.function.Function;
         authType = AuthType.NONE,
         invokeMode = InvokeMode.BUFFERED
 )
-public class HelloWorld implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
+public class HelloWorld implements RequestHandler<Object, Map<String, Object>> {
 
-    private static final int SC_OK = 200;
-    private static final int SC_NOT_FOUND = 404;
-    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    private final Map<String, String> responseHeaders = Map.of("Content-Type", "application/json");
-    private final Map<RouteKey, Function<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse>> routeHandlers = Map.of(
-            new RouteKey("GET", "/"), this::handleGetRoot,
-            new RouteKey("GET", "/hello"), this::handleGetHello
-    );
+    private static final Map<String, Object> RESPONSE_NOT_FOUND = Map.of(
+                                                                     "statusCode", 400,
+                                                                      "body", "Bad request syntax or unsupported method. Request path: null. HTTP method: null");
 
-    @Override
-    public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent requestEvent, Context context) {
-        RouteKey routeKey = new RouteKey(getMethod(requestEvent), getPath(requestEvent));
-        return routeHandlers.getOrDefault(routeKey, this::notFoundResponse).apply(requestEvent);
+    private static final Map<String, Object> RESPONSE_OK = Map.of(
+                                                              "statusCode", 200,
+                                                               "body", "Hello from Lambda");
+
+    public Map<String, Object> handleRequest(Object request, Context context) {
+
+
+        if (request != null && request instanceof APIGatewayV2HTTPEvent) {
+            return getResult(request);
+        } else {
+            return RESPONSE_NOT_FOUND;
+        }
     }
 
-    private APIGatewayV2HTTPResponse handleGetRoot(APIGatewayV2HTTPEvent requestEvent) {
-        return buildResponse(SC_OK, Body.ok("Use the path /hello to get greetings message"));
-    }
+    private  Map<String, Object> getResult(Object request) {
 
-    private APIGatewayV2HTTPResponse handleGetHello(APIGatewayV2HTTPEvent requestEvent) {
-        return buildResponse(SC_OK, Body.ok("Hello from Lambda"));
-    }
+        APIGatewayV2HTTPEvent event = (APIGatewayV2HTTPEvent) request;
+        String path = event.getRequestContext().getHttp().getPath();
+        String method = event.getRequestContext().getHttp().getMethod();
 
-    private APIGatewayV2HTTPResponse notFoundResponse(APIGatewayV2HTTPEvent requestEvent) {
-        return buildResponse(SC_NOT_FOUND, Body.error(String.format("Bad request syntax or unsupported method. Request path: {path}. HTTP method: {method}",
-                getPath(requestEvent),
-                getMethod(requestEvent)
-        )));
+        if ("/hello".equals(path)) {
+            return RESPONSE_OK;
+        } else {
+            return Map.of(
+                    "statusCode", 400,
+                    "body", String.format("Bad request syntax or unsupported method. Request path: null. HTTP method: null", path, method));
+        }
     }
-
-    private APIGatewayV2HTTPResponse buildResponse(int statusCode, Object body) {
-        return APIGatewayV2HTTPResponse.builder()
-                .withStatusCode(statusCode)
-                .withHeaders(responseHeaders)
-                .withBody(gson.toJson(body))
-                .build();
-    }
-
-    private String getMethod(APIGatewayV2HTTPEvent requestEvent) {
-        return requestEvent.getRequestContext().getHttp().getMethod();
-    }
-
-    private String getPath(APIGatewayV2HTTPEvent requestEvent) {
-        return requestEvent.getRequestContext().getHttp().getPath();
-    }
-
-    private String getUserName(Map<String, String> queryStringParameters) {
-        return queryStringParameters.get("name");
-    }
-
 }

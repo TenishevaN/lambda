@@ -72,7 +72,6 @@ public class HelloWorld implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 
     private APIGatewayV2HTTPResponse buildResponse(int statusCode, Object body) {
         return APIGatewayV2HTTPResponse.builder()
-                .withStatusCode(statusCode)
                 .withHeaders(responseHeaders)
                 .withBody(gson.toJson(body))
                 .build();

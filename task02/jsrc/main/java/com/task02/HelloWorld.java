@@ -82,6 +82,6 @@ public class HelloWorld implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
     }
 
     private String getPath(APIGatewayV2HTTPEvent requestEvent) {
-        return requestEvent.getRequestContext().getHttp().getPath();
+        return requestEvent.getRequestContext().getHttp().getPath().replace("/", "");
     }
 }

@@ -65,7 +65,7 @@ public class HelloWorld implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 
         return buildResponse(SC_NOT_FOUND, Map.of("statusCode", SC_NOT_FOUND,
                                                   "message", String.format("Bad request syntax or unsupported method. Request path: %s. HTTP method: %s",
-                                                             getPath(requestEvent).replace("/", ""),
+                                                             getPath(requestEvent),
                                                              getMethod(requestEvent)
         )));
     }

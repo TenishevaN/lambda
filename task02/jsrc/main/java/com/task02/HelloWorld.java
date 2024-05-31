@@ -50,9 +50,11 @@ public class HelloWorld implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
     @Override
     public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent requestEvent, Context context) {
 
-
         if(requestEvent.getRequestContext() == null){
-            return buildResponse(SC_OK, Body.ok("Use the path /hello to get greetings message"));
+            return buildResponse(SC_NOT_FOUND, Body.error(String.format("Bad request syntax or unsupported method. Request path: %s. HTTP method: %s",
+                    getPath(requestEvent),
+                    getMethod(requestEvent)
+            )));
         }
 
         var path = getPath(requestEvent);

@@ -15,6 +15,7 @@ import com.syndicate.deployment.model.DeploymentRuntime;
 import com.syndicate.deployment.model.lambda.url.AuthType;
 import com.syndicate.deployment.model.lambda.url.InvokeMode;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -40,38 +41,95 @@ import java.util.function.Function;
         authType = AuthType.NONE,
         invokeMode = InvokeMode.BUFFERED
 )
-public class HelloWorld implements RequestHandler<Object, Map<String, Object>> {
+public class HelloWorld implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
+    private static final int SC_OK = 200;
+    private static final int SC_NOT_FOUND = 404;
+    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private final Map<String, String> responseHeaders = Map.of("Content-Type", "application/json");
+    private final Map<RouteKey, Function<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse>> routeHandlers = Map.of(
+            new RouteKey("GET", "/"), this::handleGetRoot,
+            new RouteKey("GET", "/hello"), this::handleGetHello
+    );
 
-    private static final Map<String, Object> RESPONSE_NOT_FOUND = Map.of(
-                                                                     "statusCode", 400,
-                                                                      "body", "Bad request syntax or unsupported method. Request path: null. HTTP method: null");
+    @Override
+    public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent requestEvent, Context context) {
 
-    private static final Map<String, Object> RESPONSE_OK = Map.of(
-                                                              "statusCode", 200,
-                                                               "body", "Hello from Lambda");
+        RouteKey routeKey = new RouteKey(getMethod(requestEvent), getPath(requestEvent));
+        return routeHandlers.getOrDefault(routeKey, this::notFoundResponse).apply(requestEvent);
+    }
 
-    public Map<String, Object> handleRequest(Object request, Context context) {
+    private APIGatewayV2HTTPResponse handleGetRoot(APIGatewayV2HTTPEvent requestEvent) {
+        return buildResponse(SC_OK, Body.ok("Use the path /hello to get greetings message"));
+    }
 
+    private APIGatewayV2HTTPResponse handleGetHello(APIGatewayV2HTTPEvent requestEvent) {
+        return buildResponse(SC_OK, Body.ok("Hello from Lambda"));
+    }
 
-        if (request != null && request instanceof APIGatewayV2HTTPEvent) {
-            return getResult(request);
-        } else {
-            return RESPONSE_NOT_FOUND;
+    private APIGatewayV2HTTPResponse notFoundResponse(APIGatewayV2HTTPEvent requestEvent) {
+        return buildResponse(SC_NOT_FOUND, Body.error(String.format("Bad request syntax or unsupported method. Request path: %s. HTTP method: %s",
+                getPath(requestEvent),
+                getMethod(requestEvent)
+        )));
+    }
+
+    private APIGatewayV2HTTPResponse buildResponse(int statusCode, Object body) {
+        return APIGatewayV2HTTPResponse.builder()
+                .withStatusCode(statusCode)
+                .withHeaders(responseHeaders)
+                .withBody(gson.toJson(body))
+                .build();
+    }
+
+    private String getMethod(APIGatewayV2HTTPEvent requestEvent) {
+        return requestEvent.getRequestContext().getHttp().getMethod();
+    }
+
+    private String getPath(APIGatewayV2HTTPEvent requestEvent) {
+        return requestEvent.getRequestContext().getHttp().getPath();
+    }
+
+    private class RouteKey {
+        private String method;
+        private String path;
+
+        public String getMethod() {
+            return method;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public RouteKey(String method, String path) {
+            this.method = method;
+            this.path = path;
         }
     }
 
-    private  Map<String, Object> getResult(Object request) {
+    private static class Body {
+        private String message;
+        private String error;
 
-        APIGatewayV2HTTPEvent event = (APIGatewayV2HTTPEvent) request;
-        String path = event.getRequestContext().getHttp().getPath();
-        String method = event.getRequestContext().getHttp().getMethod();
+        public String getMessage() {
+            return message;
+        }
 
-        if ("/hello".equals(path)) {
-            return RESPONSE_OK;
-        } else {
-            return Map.of(
-                    "statusCode", 400,
-                    "body", String.format("Bad request syntax or unsupported method. Request path: null. HTTP method: null", path, method));
+        public String getError() {
+            return error;
+        }
+
+        public Body(String message, String error) {
+            this.message = message;
+            this.error = error;
+        }
+
+        static Body ok(String message) {
+            return new Body(message, null);
+        }
+
+        static Body error(String error) {
+            return new Body(null, error);
         }
     }
 }

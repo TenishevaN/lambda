@@ -51,18 +51,18 @@ public class HelloWorld implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
     public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent requestEvent, Context context) {
 
         if (requestEvent.getRequestContext() == null) {
-            return buildResponse(SC_NOT_FOUND, "Bad request syntax or unsupported method. Request path: null. HTTP method: null");
+            return buildResponse(SC_NOT_FOUND, Map.of("message","Bad request syntax or unsupported method. Request path: null. HTTP method: null"));
         }
 
         var path = getPath(requestEvent);
 
         if ("/hello".equals(path)) {
-            return buildResponse(SC_OK, "Hello from Lambda");
+            return buildResponse(SC_OK, Map.of("message", "Hello from Lambda"));
         }
 
-        return buildResponse(SC_NOT_FOUND,  String.format("Bad request syntax or unsupported method. Request path: %s. HTTP method: %s",
+        return buildResponse(SC_NOT_FOUND,  Map.of("message",String.format("Bad request syntax or unsupported method. Request path: %s. HTTP method: %s",
                                                              getPath(requestEvent),
-                                                             getMethod(requestEvent)
+                                                             getMethod(requestEvent))
         ));
     }
 

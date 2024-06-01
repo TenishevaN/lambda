@@ -51,27 +51,24 @@ public class HelloWorld implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
     public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent requestEvent, Context context) {
 
         if (requestEvent.getRequestContext() == null) {
-            return buildResponse(SC_NOT_FOUND, Map.of("statusCode", SC_NOT_FOUND,
-                                                       "message", "Bad request syntax or unsupported method. Request path: null. HTTP method: null"));
+            return buildResponse(SC_NOT_FOUND, "Bad request syntax or unsupported method. Request path: null. HTTP method: null");
         }
 
         var path = getPath(requestEvent);
-        var method = getMethod(requestEvent);
 
         if ("/hello".equals(path)) {
-            return buildResponse(SC_OK, Map.of("statusCode", SC_OK,
-                                               "message", "Hello from Lambda"));
+            return buildResponse(SC_OK, "Hello from Lambda");
         }
 
-        return buildResponse(SC_NOT_FOUND, Map.of("statusCode", SC_NOT_FOUND,
-                                                  "message", String.format("Bad request syntax or unsupported method. Request path: %s. HTTP method: %s",
+        return buildResponse(SC_NOT_FOUND,  String.format("Bad request syntax or unsupported method. Request path: %s. HTTP method: %s",
                                                              getPath(requestEvent),
                                                              getMethod(requestEvent)
-        )));
+        ));
     }
 
     private APIGatewayV2HTTPResponse buildResponse(int statusCode, Object body) {
         return APIGatewayV2HTTPResponse.builder()
+                .withStatusCode(statusCode)
                 .withHeaders(responseHeaders)
                 .withBody(gson.toJson(body))
                 .build();
@@ -82,6 +79,6 @@ public class HelloWorld implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
     }
 
     private String getPath(APIGatewayV2HTTPEvent requestEvent) {
-        return requestEvent.getRequestContext().getHttp().getPath().replace("/", "");
+        return requestEvent.getRequestContext().getHttp().getPath();
     }
 }

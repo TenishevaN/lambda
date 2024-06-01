@@ -17,8 +17,9 @@ import com.syndicate.deployment.model.lambda.url.InvokeMode;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -51,19 +52,16 @@ public class HelloWorld implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
     public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent requestEvent, Context context) {
 
         if (requestEvent.getRequestContext() == null) {
-            return buildResponse(SC_NOT_FOUND, Map.of("message","Bad request syntax or unsupported method. Request path: null. HTTP method: null"));
+            return buildResponse(SC_NOT_FOUND, getBodyNotFound("null", "null"));
         }
 
         var path = getPath(requestEvent);
 
         if ("/hello".equals(path)) {
-            return buildResponse(SC_OK, Map.of("message", "Hello from Lambda"));
+            return buildResponse(SC_OK, getBodyOk());
         }
 
-        return buildResponse(SC_NOT_FOUND,  Map.of("message",String.format("Bad request syntax or unsupported method. Request path: %s. HTTP method: %s",
-                                                             getPath(requestEvent),
-                                                             getMethod(requestEvent))
-        ));
+        return buildResponse(SC_NOT_FOUND, getBodyNotFound(path, getMethod(requestEvent)));
     }
 
     private APIGatewayV2HTTPResponse buildResponse(int statusCode, Object body) {
@@ -80,5 +78,19 @@ public class HelloWorld implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 
     private String getPath(APIGatewayV2HTTPEvent requestEvent) {
         return requestEvent.getRequestContext().getHttp().getPath();
+    }
+
+    private Map<String, Object> getBodyOk(){
+        Map<String, Object> resultMap = new LinkedHashMap<String, Object>();
+        resultMap.put("statusCode", 200);
+        resultMap.put("message", "Hello from Lambda");
+        return resultMap;
+    }
+
+    private Map<String, Object> getBodyNotFound(String path, String method){
+        Map<String, Object> resultMap = new LinkedHashMap<String, Object>();
+        resultMap.put("statusCode", 400);
+        resultMap.put("message", String.format("Bad request syntax or unsupported method. Request path: %s. HTTP method: %s",  path,   method));
+        return resultMap;
     }
 }

@@ -25,11 +25,31 @@
             <artifactId>aws-lambda-java-core</artifactId>
             <version>1.2.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-lambda-java-events</artifactId>
+            <version>3.11.4</version>
+        </dependency>
         <!--Syndicate annotations-->
         <dependency>
             <groupId>net.sf.aws-syndicate</groupId>
             <artifactId>deployment-configuration-annotations</artifactId>
             <version>${syndicate.java.plugin.version}</version>
+        </dependency>
+        <!--Custom dependencies (for sdk layer)-->
+        <dependency>
+            <groupId>task03</groupId>
+            <artifactId>commons-lang3-downloaded-library</artifactId>
+            <version>3.14.0</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/commons-lang3-3.14.0.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>task03</groupId>
+            <artifactId>gson-downloaded-library</artifactId>
+            <version>2.10.1</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/gson-2.10.1.jar</systemPath>
         </dependency>
     </dependencies>
 

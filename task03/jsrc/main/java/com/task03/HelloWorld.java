@@ -3,6 +3,7 @@ package com.task03;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.syndicate.deployment.annotations.lambda.LambdaHandler;
@@ -37,17 +38,21 @@ import java.util.Map;
         authType = AuthType.NONE,
         invokeMode = InvokeMode.BUFFERED
 )
-public class HelloWorld implements RequestHandler<APIGatewayV2HTTPEvent,  Map<String, Object>> {
+public class HelloWorld implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private final Map<String, String> responseHeaders = Map.of("Content-Type", "application/json");
 
 
     @Override
-    public Map<String, Object> handleRequest(APIGatewayV2HTTPEvent request, Context context) {
-
-        return Map.of(
+    public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent apiGatewayV2HTTPEvent, Context context) {
+        var body = Map.of(
                 "statusCode", 200,
-                "message", "Hello from Lambda"
-        );
+                "message", "Hello from Lambda");
+
+        return APIGatewayV2HTTPResponse.builder()
+                .withStatusCode(200)
+                .withHeaders(responseHeaders)
+                .withBody(gson.toJson(body))
+                .build();
     }
 }

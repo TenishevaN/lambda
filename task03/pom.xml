@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>task02-group</groupId>
-    <artifactId>task02</artifactId>
+    <groupId>task03-group</groupId>
+    <artifactId>task03</artifactId>
     <version>1.0.0</version>
 
     <properties>
@@ -25,33 +25,11 @@
             <artifactId>aws-lambda-java-core</artifactId>
             <version>1.2.0</version>
         </dependency>
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-lambda-java-events</artifactId>
-            <version>3.11.4</version>
-        </dependency>
         <!--Syndicate annotations-->
         <dependency>
             <groupId>net.sf.aws-syndicate</groupId>
             <artifactId>deployment-configuration-annotations</artifactId>
             <version>${syndicate.java.plugin.version}</version>
-        </dependency>
-
-
-        <!--Custom dependencies (for sdk layer)-->
-        <dependency>
-            <groupId>task02</groupId>
-            <artifactId>commons-lang3-downloaded-library</artifactId>
-            <version>3.14.0</version>
-            <scope>system</scope>
-            <systemPath>${basedir}/lib/commons-lang3-3.14.0.jar</systemPath>
-        </dependency>
-        <dependency>
-            <groupId>task02</groupId>
-            <artifactId>gson-downloaded-library</artifactId>
-            <version>2.10.1</version>
-            <scope>system</scope>
-            <systemPath>${basedir}/lib/gson-2.10.1.jar</systemPath>
         </dependency>
     </dependencies>
 
@@ -69,7 +47,7 @@
                 <version>${syndicate.java.plugin.version}</version>
                 <configuration>
                     <packages>
-                        <package>com.task02</package>
+                        <package>com.task03</package>
                     </packages>
                     <fileName>${project.name}-${project.version}.jar</fileName>
                 </configuration>

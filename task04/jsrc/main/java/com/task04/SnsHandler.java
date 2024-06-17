@@ -8,9 +8,15 @@ import com.syndicate.deployment.model.RetentionSetting;
 import com.syndicate.deployment.annotations.events.SnsEventSource;
 import com.syndicate.deployment.annotations.resources.DependsOn;
 import com.syndicate.deployment.model.ResourceType;
+import com.amazonaws.services.lambda.runtime.events.SNSEvent;
+import com.amazonaws.services.lambda.runtime.events.SNSEvent.SNSRecord;
+
+import com.amazonaws.services.lambda.runtime.LambdaLogger;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Iterator;
+import java.util.List;
 
 @LambdaHandler(lambdaName = "sns_handler",
 	roleName = "sns_handler-role",
@@ -24,13 +30,28 @@ import java.util.Map;
 		name = "lambda_topic",
 		resourceType = ResourceType.SNS_TOPIC
 )
-public class SnsHandler implements RequestHandler<Object, Map<String, Object>> {
+public class SnsHandler implements RequestHandler<SNSEvent, Boolean> {
+	LambdaLogger logger;
 
-	public Map<String, Object> handleRequest(Object request, Context context) {
-		System.out.println("Hello from lambda");
-		Map<String, Object> resultMap = new HashMap<String, Object>();
-		resultMap.put("statusCode", 200);
-		resultMap.put("body", "Hello from Lambda");
-		return resultMap;
+	@Override
+	public Boolean handleRequest(SNSEvent event, Context context) {
+		logger = context.getLogger();
+		List<SNSRecord> records = event.getRecords();
+		if (!records.isEmpty()) {
+			Iterator<SNSRecord> recordsIter = records.iterator();
+			while (recordsIter.hasNext()) {
+				processRecord(recordsIter.next());
+			}
+		}
+		return Boolean.TRUE;
+	}
+
+	public void processRecord(SNSRecord record) {
+		try {
+			String message = record.getSNS().getMessage();
+			logger.log(message);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

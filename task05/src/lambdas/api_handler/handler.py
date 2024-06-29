@@ -33,8 +33,10 @@ def lambda_handler(event, context):
 
     table = dynamodb.Table(table_name)
 
-    response = table.put_item(Item=obj)
-
+    try:
+      response = table.put_item(Item=obj)
+    except Exception as e:
+        print(f"Error putting item into DynamoDB: {e}")
     return {
         "statusCode": 201,
         "event": json.dumps(response, indent=4)

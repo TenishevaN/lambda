@@ -20,10 +20,7 @@
     "custom_policies": [
       "PutItemToDynamoPolicy"
     ],
-    "resource_type": "iam_role",
-    "allowed_accounts": [
-      "${account_id}"
-    ]
+    "resource_type": "iam_role"
   },
   "Events": {
     "resource_type": "dynamodb_table",

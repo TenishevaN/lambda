@@ -3,10 +3,16 @@ import os
 import uuid
 import boto3
 from datetime import datetime
+import logging
+
+# Set up logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
 
       if 'principalId' not in event or 'content' not in event:
+            logger.error("Missing 'principalId' in event")
             return {
                 "statusCode": 400,
                 "errorMessage": "Missing 'principalId' or 'content' in event"
@@ -36,7 +42,7 @@ def lambda_handler(event, context):
     try:
       response = table.put_item(Item=obj)
     except Exception as e:
-        print(f"Error putting item into DynamoDB: {e}")
+        logger.error(f"Error putting item into DynamoDB: {e}")
         return {
                 "statusCode": 500,
                 "errorMessage": f"Error putting item into DynamoDB: {e}"

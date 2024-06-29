@@ -9,7 +9,7 @@ def lambda_handler(event, context):
     iso_time = current_time.isoformat()
 
     obj = {
-        'id':  'UUID v4',
+        'id':  "UUID v4",
         'principalId': event['principalId'],
         'createdAt': iso_time,
         'body': event

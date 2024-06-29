@@ -23,6 +23,7 @@
 hs_err_pid*
 replay_pid*
 
+.syndicate_venv
 .syndicate
 .syndicate-config-*/
 .syndicate-config-dev

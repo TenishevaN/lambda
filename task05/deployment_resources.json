@@ -44,6 +44,7 @@
     "resources": {
       "/events": {
         "enable_cors": true,
+        "enable_proxy": true,
         "POST": {
           "integration_request_body_template": {},
           "authorization_type": "NONE",

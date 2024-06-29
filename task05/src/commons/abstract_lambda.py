@@ -27,7 +27,7 @@ class AbstractLambda:
         """
         pass
 
-    def lambda_handler(self, event, context):
+    def api_handler(self, event, context):
         try:
             _LOG.debug(f'Request: {event}')
             if event.get('warm_up'):

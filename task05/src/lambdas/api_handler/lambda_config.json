@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "name": "api_handler",
-  "func_name": "api_handler.api_handler",
+  "func_name": "handler.api_handler",
   "resource_type": "lambda",
   "iam_role_name": "PutItemToDynamoRole",
   "runtime": "python3.10",

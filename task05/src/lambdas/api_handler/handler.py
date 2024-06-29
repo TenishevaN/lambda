@@ -5,11 +5,18 @@ import boto3
 from datetime import datetime
 
 def lambda_handler(event, context):
+
+      if 'principalId' not in event or 'content' not in event:
+            return {
+                "statusCode": 400,
+                "errorMessage": "Missing 'principalId' or 'content' in event"
+            }
+
     current_time = datetime.now()
     iso_time = current_time.isoformat()
 
     obj = {
-        'id':  "UUID v4",
+        'id':  str(uuid.uuid4()),
         'principalId': event['principalId'],
         'createdAt': iso_time,
         'body': event['content']

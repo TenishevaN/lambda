@@ -1,20 +1,18 @@
 import json
 import os
 import uuid
-
 import boto3
-
 from datetime import datetime
 
-current_time = datetime.now()
-iso_time = current_time.isoformat()
-
 def lambda_handler(event, context):
+    current_time = datetime.now()
+    iso_time = current_time.isoformat()
+
     obj = {
-        'id': str(uuid.uuid4()),
-        'principalId': str(uuid.uuid1()),
+        'id':  'UUID v4',
+        'principalId': event['principalId'],
         'createdAt': iso_time,
-        'body': str(event)
+        'body': event
     }
 
     dynamodb = boto3.resource('dynamodb', region_name=os.environ['region'])

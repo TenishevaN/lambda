@@ -53,5 +53,5 @@ def api_handler(event, context):
 
     return {
         "statusCode": 201,
-        "event": json.dumps(response, indent=4)
+        "event": obj
     }

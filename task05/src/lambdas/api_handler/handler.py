@@ -12,6 +12,12 @@ def lambda_handler(event, context):
                 "errorMessage": "Missing 'principalId' or 'content' in event"
             }
 
+       if 'content' not in event or not isinstance(event['content'], dict):
+              return {
+                  "statusCode": 400,
+                  "errorMessage": "Missing 'content' or it's not a dictionary"
+              }
+
     current_time = datetime.now()
     iso_time = current_time.isoformat()
 

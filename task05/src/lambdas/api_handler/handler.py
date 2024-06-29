@@ -12,7 +12,7 @@ def lambda_handler(event, context):
         'id':  "UUID v4",
         'principalId': event['principalId'],
         'createdAt': iso_time,
-        'body': event
+        'body': event['content']
     }
 
     dynamodb = boto3.resource('dynamodb', region_name=os.environ['region'])

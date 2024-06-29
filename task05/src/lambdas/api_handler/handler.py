@@ -10,19 +10,20 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
+    logger.info("Lambda processing")
 
-      if 'principalId' not in event or 'content' not in event:
-            logger.error("Missing 'principalId' in event")
-            return {
-                "statusCode": 400,
-                "errorMessage": "Missing 'principalId' or 'content' in event"
-            }
+    if 'principalId' not in event or 'content' not in event:
+        logger.error("Missing 'principalId' or 'content' in event")
+        return {
+            "statusCode": 400,
+            "errorMessage": "Missing 'principalId' or 'content' in event"
+        }
 
-       if 'content' not in event or not isinstance(event['content'], dict):
-              return {
-                  "statusCode": 400,
-                  "errorMessage": "Missing 'content' or it's not a dictionary"
-              }
+    if 'content' not in event or not isinstance(event['content'], dict):
+        return {
+            "statusCode": 400,
+            "errorMessage": "Missing 'content' or it's not a dictionary"
+        }
 
     current_time = datetime.now()
     iso_time = current_time.isoformat()
@@ -34,19 +35,21 @@ def lambda_handler(event, context):
         'body': event['content']
     }
 
+    logger.info(f"object to write to db {obj}")
+
     dynamodb = boto3.resource('dynamodb', region_name=os.environ['region'])
     table_name = os.environ['table_name']
 
     table = dynamodb.Table(table_name)
 
     try:
-      response = table.put_item(Item=obj)
+        response = table.put_item(Item=obj)
     except Exception as e:
         logger.error(f"Error putting item into DynamoDB: {e}")
         return {
-                "statusCode": 500,
-                "errorMessage": f"Error putting item into DynamoDB: {e}"
-            }
+            "statusCode": 500,
+            "errorMessage": f"Error putting item into DynamoDB: {e}"
+        }
 
     return {
         "statusCode": 201,

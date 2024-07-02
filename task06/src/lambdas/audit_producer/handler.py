@@ -21,7 +21,7 @@ class AuditProducer(AbstractLambda):
         else:
             for record in event['Records']:
                 current_time = datetime.now(timezone.utc)
-                iso_time = current_time.isoformat()
+                iso_time = current_time.isoformat().replace("+00:00", "Z")
 
                 _LOG.info(f"record content: {record['dynamodb']}")
 

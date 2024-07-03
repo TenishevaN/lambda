@@ -17,7 +17,7 @@ class UuidGenerator(AbstractLambda):
     def handle_request(self, event, context):
       utc_timestamp = datetime.now(timezone.utc)
       uuids = [str(uuid.uuid4()) for _ in range(10)]
-      file_name = utc_timestamp.isoformat(timespec='milliseconds') + "Z"
+      file_name = utc_timestamp.isoformat(timespec='milliseconds').replace('+00:00', 'Z')
       data = {"ids": uuids}
       self.bucket.put_object(Key=file_name, Body=json.dumps(data))
       return 200

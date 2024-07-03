@@ -4,7 +4,7 @@ import json
 
 from commons.log_helper import get_logger
 from commons.abstract_lambda import AbstractLambda
-from datetime import datetime
+from datetime import datetime, timezone
 
 _LOG = get_logger('UuidGenerator-handler')
 
@@ -13,10 +13,11 @@ class UuidGenerator(AbstractLambda):
 
     s3 = boto3.resource('s3')
     bucket = s3.Bucket('cmtr-85e8c71a-uuid-storage-test')
-        
+    utc_timestamp = datetime.now(timezone.utc)
+
     def handle_request(self, event, context):
       uuids = [str(uuid.uuid4()) for _ in range(10)]
-      file_name = datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ|%Y-%m-%dT%H:%M:%S.%f')
+      file_name = utc_timestamp.isoformat(timespec='milliseconds') + "Z"
       data = {"ids": uuids}
       self.bucket.put_object(Key=file_name, Body=json.dumps(data))
       return 200

@@ -16,7 +16,7 @@ class UuidGenerator(AbstractLambda):
         
     def handle_request(self, event, context):
       uuids = [str(uuid.uuid4()) for _ in range(10)]
-      file_name = datetime.now().isoformat() + ".json"
+      file_name = datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ|' + '%Y-%m-%dT%H:%M:%S.%f') + ".json"
       data = {"ids": uuids}
       self.bucket.put_object(Key=file_name, Body=json.dumps(data))
       return 200

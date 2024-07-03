@@ -56,8 +56,8 @@
             "s3:ListMultipartUploadParts"
             ],
           "Resource": [
-            "arn:aws:s3:::uuid-storage/*",
-            "arn:aws:s3:::uuid-storage"
+            "arn:aws:s3:::cmtr-85e8c71a-uuid-storage-test/*",
+            "arn:aws:s3:::cmtr-85e8c71a-uuid-storage-test"
           ],
           "Principal": "*",
           "Effect": "Allow",

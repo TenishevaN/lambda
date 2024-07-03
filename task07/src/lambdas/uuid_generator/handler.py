@@ -12,7 +12,7 @@ _LOG = get_logger('UuidGenerator-handler')
 class UuidGenerator(AbstractLambda):
 
     s3 = boto3.resource('s3')
-    bucket = s3.Bucket('cmtr-85e8c71a-uuid-storage')
+    bucket = s3.Bucket('uuid-storage')
         
     def handle_request(self, event, context):
       uuids = [str(uuid.uuid4()) for _ in range(10)]

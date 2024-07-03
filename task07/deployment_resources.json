@@ -1,0 +1,87 @@
+{
+  "lambda-basic-execution": {
+    "policy_content": {
+      "Statement": [
+        {
+          "Action": [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents",
+            "dynamodb:GetItem",
+            "dynamodb:Query",
+            "dynamodb:PutItem",
+            "dynamodb:Batch*",
+            "dynamodb:DeleteItem",
+            "ssm:PutParameter",
+            "ssm:GetParameter",
+            "kms:Encrypt",
+            "kms:Decrypt",
+            "kms:ReEncrypt*",
+            "kms:GenerateDataKey*",
+            "kms:DescribeKey",
+            "s3:PutObject",
+            "s3:GetObject"
+          ],
+          "Effect": "Allow",
+          "Resource": "*"
+        }
+      ],
+      "Version": "2012-10-17"
+    },
+    "resource_type": "iam_policy"
+  },
+  "uuid_generator-role": {
+    "predefined_policies": [],
+    "principal_service": "lambda",
+    "custom_policies": [
+      "lambda-basic-execution"
+    ],
+    "resource_type": "iam_role"
+  },
+  "uuid-storage": {
+    "resource_type": "s3_bucket",
+    "acl": "private",
+    "location": "eu-central-1",
+    "cors": [],
+    "policy": {
+      "Version": "2012-10-17",
+      "Id": "PolicyForCloudFrontPrivateContent",
+      "Statement": [
+        {
+          "Action": [
+            "s3:PutObject",
+            "s3:GetObject",
+            "s3:ListBucket",
+            "s3:GetObjectVersion",
+            "s3:ListMultipartUploadParts"
+            ],
+          "Resource": [
+            "arn:aws:s3:::cmtr-85e8c71a-uuid-storage/*",
+            "arn:aws:s3:::cmtr-85e8c71a-uuid-storage"
+          ],
+          "Principal": "*",
+          "Effect": "Allow",
+          "Sid": "1"
+        }
+      ]
+    },
+    "public_access_block": {
+      "block_public_acls": false,
+      "ignore_public_acls": false,
+      "block_public_policy": false,
+      "restrict_public_buckets": false
+    }
+  },
+  "uuid_trigger": {
+    "resource_type": "cloudwatch_rule",
+    "rule_type": "schedule",
+    "region": "eu-central-1",
+    "expression": "rate(1 minute)",
+    "targets": [
+      {
+        "id": "1",
+        "arn": "arn:aws:lambda:eu-central-1:196241772369:function:uuid_generator"
+      }
+    ]
+  }
+}

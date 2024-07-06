@@ -26,6 +26,7 @@ import java.util.Map;
         roleName = "api_handler-role",
         layers = {"sdk-layer"},
         runtime = DeploymentRuntime.JAVA11,
+        isPublishVersion = false,
         architecture = Architecture.ARM64,
         logsExpiration = RetentionSetting.SYNDICATE_ALIASES_SPECIFIED
 )

@@ -68,7 +68,8 @@ public class HelloWorld implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
             return buildResponse(SC_OK, Map.of("statusCode", SC_OK,
                     "message", "Hello from Lambda"));
         }
-         return buildResponse(SC_NOT_FOUND, Map.of("message", String.format("Bad request syntax or unsupported method. Request path: %s. HTTP method: %s",
+         return buildResponse(SC_NOT_FOUND, Map.of("statusCode", SC_NOT_FOUND,
+                    "message", String.format("Bad request syntax or unsupported method. Request path: %s. HTTP method: %s",
                                                              path,
                                                              getMethod(requestEvent)
         )));

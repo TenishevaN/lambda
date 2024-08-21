@@ -64,7 +64,7 @@ public class HelloWorld implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
         System.out.println("/hello.equals(path) =" + "/hello".equals(path));
 
         if ("/hello".equals(path)) {
-            return buildResponse(SC_OK, Map.of("message", "Hello from Lambda");
+            return buildResponse(SC_OK, Map.of("message", "Hello from Lambda"));
         }
 
         return buildResponse(SC_NOT_FOUND, Map.of("message", String.format("Bad request syntax or unsupported method. Request path: %s. HTTP method: %s",

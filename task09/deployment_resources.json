@@ -1,0 +1,52 @@
+{
+  "lambda-logging-and-xray-execution": {
+    "policy_content": {
+      "Statement": [
+        {
+          "Action": [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents",
+            "xray:PutTraceSegments",
+            "xray:PutTelemetryRecords"
+          ],
+          "Effect": "Allow",
+          "Resource": "*"
+        }
+      ],
+      "Version": "2012-10-17"
+    },
+    "resource_type": "iam_policy"
+  },
+  "lambda-dynamodb-execution": {
+    "policy_content": {
+      "Statement": [
+        {
+          "Action": [
+            "dynamodb:DescribeTable",
+            "dynamodb:CreateTable",
+            "dynamodb:PutItem",
+            "dynamodb:GetItem",
+            "dynamodb:UpdateItem",
+            "dynamodb:DeleteItem",
+            "dynamodb:Scan",
+            "dynamodb:Query"
+          ],
+          "Effect": "Allow",
+          "Resource": "arn:aws:dynamodb:eu-central-1:905418349556:table/cmtr-85e8c71a-Weather"
+        }
+      ],
+      "Version": "2012-10-17"
+    },
+    "resource_type": "iam_policy"
+  },
+  "processor-role": {
+    "predefined_policies": [],
+    "principal_service": "lambda",
+    "custom_policies": [
+      "lambda-logging-and-xray-execution",
+      "lambda-dynamodb-execution"
+    ],
+    "resource_type": "iam_role"
+  }
+}

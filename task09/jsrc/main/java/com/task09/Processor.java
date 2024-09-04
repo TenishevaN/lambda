@@ -65,7 +65,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private static final Map<String, String> responseHeaders = Map.of("Content-Type", "application/json");
     private final Map<RouteKey, Function<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse>> routeHandlers = Map.of(
-            new RouteKey("GET", "/weather"), this::handleGetWeather);
+            new RouteKey("GET", "/"), this::handleGetWeather);
 
     public Processor() {
         ensureTableExists();

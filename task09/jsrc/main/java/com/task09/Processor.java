@@ -36,7 +36,9 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Field;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import java.lang.reflect.Field;
 
 
 
@@ -147,19 +149,9 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 
     private static void putItem(WeatherForecast forecast) {
         String uniqueID = UUID.randomUUID().toString();
-        ObjectMapper objectMapper = new ObjectMapper();
-        String forecastJson = null;
-
-        try {
-            forecastJson = objectMapper.writeValueAsString(forecast);
-        } catch (JsonProcessingException e) {
-            System.err.println("Error serializing forecast: " + e.getMessage());
-            return;
-        }
-
         Map<String, AttributeValue> item = new HashMap<>();
         item.put("id", AttributeValue.builder().s(uniqueID).build());
-        item.put("forecast", AttributeValue.builder().s(forecastJson).build());
+        item.put("forecast", AttributeValue.builder().m(forecastToMap(forecast)).build());
 
         try {
             dynamoDB.putItem(PutItemRequest.builder()
@@ -170,6 +162,32 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
         } catch (DynamoDbException e) {
             System.err.println("Error inserting item into table: " + e.getMessage());
         }
+    }
+
+    private static Map<String, AttributeValue> forecastToMap(WeatherForecast forecast) {
+        Map<String, AttributeValue> forecastMap = new HashMap<>();
+        Field[] fields = forecast.getClass().getDeclaredFields();
+
+        for (Field field : fields) {
+            field.setAccessible(true); // You might need this if fields are private
+            try {
+                Object value = field.get(forecast);
+                String fieldName = field.getName();
+                if (value instanceof String) {
+                    forecastMap.put(fieldName, AttributeValue.builder().s((String) value).build());
+                } else if (value instanceof Integer) {
+                    forecastMap.put(fieldName, AttributeValue.builder().n(value.toString()).build());
+                } else if (value instanceof Double) {
+                    forecastMap.put(fieldName, AttributeValue.builder().n(value.toString()).build());
+                } else if (value != null) {
+                    // Handle other types as needed
+                    forecastMap.put(fieldName, AttributeValue.builder().s(value.toString()).build());
+                }
+            } catch (IllegalAccessException e) {
+                System.err.println("Error accessing field: " + e.getMessage());
+            }
+        }
+        return forecastMap;
     }
 
 

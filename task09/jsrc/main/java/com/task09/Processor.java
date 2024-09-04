@@ -30,8 +30,6 @@ import com.amazonaws.xray.AWSXRay;
 
 import com.syndicate.deployment.model.TracingMode;
 
-import com.amazonaws.xray.AWSXRay;
-import com.amazonaws.xray.AWSXRayRecorderBuilder;
 
 
 @LambdaHandler(
@@ -57,13 +55,6 @@ import com.amazonaws.xray.AWSXRayRecorderBuilder;
 )
 public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
 
-    static {
-        AWSXRayRecorderBuilder builder = AWSXRayRecorderBuilder.standard();
-        SamplingStrategy samplingStrategy = new LocalizedSamplingStrategy();
-        builder.withSamplingStrategy(samplingStrategy);
-        AWSXRay.setGlobalRecorder(builder.build());
-        AWSXRay.beginSegment("YourSegmentName");
-    }
 
     private static final DynamoDbClient dynamoDB = DynamoDbClient.builder()
             .region(Region.EU_CENTRAL_1) // Set the appropriate region

@@ -142,7 +142,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 
         Map<String, AttributeValue> item = new HashMap<>();
         item.put("id", AttributeValue.builder().s(uniqueID).build());
-        item.put("forecast", toAttributeValueMap(forecast));
+        item.put("forecast", forecast);
 
         try {
             dynamoDB.putItem(PutItemRequest.builder()
@@ -153,31 +153,6 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
         } catch (DynamoDbException e) {
             System.err.println("Error inserting item into table: " + e.getMessage());
         }
-    }
-
-    private static AttributeValue toAttributeValueMap(Object object) {
-        Map<String, AttributeValue> attributeValueMap = new HashMap<>();
-
-        Field[] fields = object.getClass().getDeclaredFields();
-        for (Field field : fields) {
-            try {
-                field.setAccessible(true);
-                Object value = field.get(object);
-                if (value instanceof String) {
-                    attributeValueMap.put(field.getName(), AttributeValue.builder().s((String) value).build());
-                } else if (value instanceof Integer) {
-                    attributeValueMap.put(field.getName(), AttributeValue.builder().n(String.valueOf(value)).build());
-                } else if (value instanceof Double) {
-                    attributeValueMap.put(field.getName(), AttributeValue.builder().n(String.valueOf(value)).build());
-                }
-                // Add other types as needed
-                field.setAccessible(false);
-            } catch (IllegalAccessException e) {
-                System.err.println("Error accessing field: " + field.getName());
-            }
-        }
-
-        return AttributeValue.builder().m(attributeValueMap).build();
     }
 
 

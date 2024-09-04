@@ -30,6 +30,9 @@ import com.amazonaws.xray.AWSXRay;
 
 import com.syndicate.deployment.model.TracingMode;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 
 
 @LambdaHandler(
@@ -129,12 +132,31 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
         return buildResponse(200, forecast);
     }
 
+
+
     private static void putItem(WeatherForecast forecast) {
         String uniqueID = UUID.randomUUID().toString();
         Gson gson = new Gson();
+
+        // Convert the forecast object to a JSON string, then to a Map
+        String json = gson.toJson(forecast);
+        Map<String, Object> map = gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
+
+        Map<String, AttributeValue> forecastAttributes = new HashMap<>();
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            Object value = entry.getValue();
+            if (value instanceof Number) {
+                forecastAttributes.put(entry.getKey(), AttributeValue.builder().n(String.valueOf(value)).build());
+            } else if (value instanceof String) {
+                forecastAttributes.put(entry.getKey(), AttributeValue.builder().s((String) value).build());
+            } else {
+                // Handle other types as necessary, perhaps recursively for nested objects
+            }
+        }
+
         Map<String, AttributeValue> item = new HashMap<>();
         item.put("id", AttributeValue.builder().s(uniqueID).build());
-        item.put("forecast", AttributeValue.builder().s(gson.toJson(forecast)).build());
+        item.put("forecast", AttributeValue.builder().m(forecastAttributes).build());
 
         try {
             dynamoDB.putItem(PutItemRequest.builder()

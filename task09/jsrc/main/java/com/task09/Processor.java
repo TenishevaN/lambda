@@ -30,6 +30,10 @@ import com.amazonaws.xray.AWSXRay;
 
 import com.syndicate.deployment.model.TracingMode;
 
+import com.amazonaws.xray.AWSXRay;
+import com.amazonaws.xray.AWSXRayRecorderBuilder;
+
+
 @LambdaHandler(
         lambdaName = "processor",
         roleName = "processor-role",
@@ -52,6 +56,14 @@ import com.syndicate.deployment.model.TracingMode;
         invokeMode = InvokeMode.BUFFERED
 )
 public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
+
+    static {
+        AWSXRayRecorderBuilder builder = AWSXRayRecorderBuilder.standard();
+        SamplingStrategy samplingStrategy = new LocalizedSamplingStrategy();
+        builder.withSamplingStrategy(samplingStrategy);
+        AWSXRay.setGlobalRecorder(builder.build());
+        AWSXRay.beginSegment("YourSegmentName");
+    }
 
     private static final DynamoDbClient dynamoDB = DynamoDbClient.builder()
             .region(Region.EU_CENTRAL_1) // Set the appropriate region
@@ -78,7 +90,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 
         try {
             dynamoDB.describeTable(DescribeTableRequest.builder()
-                    .tableName("cmtr-85e8c71a-Weather")
+                    .tableName("cmtr-85e8c71a-Weather-test")
                     .build());
             System.out.println("Table already exists.");
         } catch (ResourceNotFoundException e) {
@@ -91,7 +103,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 
         try {
             dynamoDB.createTable(CreateTableRequest.builder()
-                    .tableName("cmtr-85e8c71a-Weather")
+                    .tableName("cmtr-85e8c71a-Weather-test")
                     .attributeDefinitions(AttributeDefinition.builder()
                             .attributeName("id")
                             .attributeType(ScalarAttributeType.S)
@@ -135,7 +147,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 
         try {
             dynamoDB.putItem(PutItemRequest.builder()
-                    .tableName("cmtr-85e8c71a-Weather")
+                    .tableName("cmtr-85e8c71a-Weather-test")
                     .item(item)
                     .build());
             System.out.println("Item inserted successfully.");

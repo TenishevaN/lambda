@@ -30,10 +30,12 @@
             "dynamodb:UpdateItem",
             "dynamodb:DeleteItem",
             "dynamodb:Scan",
-            "dynamodb:Query"
+            "dynamodb:Query",
+            "xray:PutTraceSegments",
+            "xray:PutTelemetryRecords"
           ],
           "Effect": "Allow",
-          "Resource": "arn:aws:dynamodb:eu-central-1:905418349556:table/cmtr-85e8c71a-Weather"
+          "Resource": "arn:aws:dynamodb:eu-central-1:905418349556:table/cmtr-85e8c71a-Weather-test"
         }
       ],
       "Version": "2012-10-17"

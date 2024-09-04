@@ -35,6 +35,8 @@ import com.google.gson.reflect.TypeToken;
 
 
 import java.lang.reflect.Field;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 
@@ -139,10 +141,19 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 
     private static void putItem(WeatherForecast forecast) {
         String uniqueID = UUID.randomUUID().toString();
+        ObjectMapper objectMapper = new ObjectMapper();
+        String forecastJson = null;
+
+        try {
+            forecastJson = objectMapper.writeValueAsString(forecast);
+        } catch (JsonProcessingException e) {
+            System.err.println("Error serializing forecast: " + e.getMessage());
+            return;
+        }
 
         Map<String, AttributeValue> item = new HashMap<>();
         item.put("id", AttributeValue.builder().s(uniqueID).build());
-        item.put("forecast", forecast);
+        item.put("forecast", AttributeValue.builder().s(forecastJson).build());
 
         try {
             dynamoDB.putItem(PutItemRequest.builder()

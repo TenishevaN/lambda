@@ -99,14 +99,19 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
     }
 
     private static void createTable() {
-
         try {
             dynamoDB.createTable(CreateTableRequest.builder()
                     .tableName("cmtr-85e8c71a-Weather-test")
-                    .attributeDefinitions(AttributeDefinition.builder()
-                            .attributeName("id")
-                            .attributeType(ScalarAttributeType.S)
-                            .build())
+                    .attributeDefinitions(
+                            AttributeDefinition.builder()
+                                    .attributeName("id")
+                                    .attributeType(ScalarAttributeType.S)
+                                    .build(),
+                            AttributeDefinition.builder()
+                                    .attributeName("forecast")
+                                    .attributeType(ScalarAttributeType.S) // Storing the forecast as a JSON string
+                                    .build()
+                    )
                     .keySchema(KeySchemaElement.builder()
                             .attributeName("id")
                             .keyType(KeyType.HASH)
@@ -117,6 +122,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
                             .build())
                     .build());
 
+            System.out.println("Table created successfully.");
         } catch (DynamoDbException e) {
             AWSXRay.getCurrentSegment().addException(e);
             System.err.println("Unable to create table: " + e.getMessage());

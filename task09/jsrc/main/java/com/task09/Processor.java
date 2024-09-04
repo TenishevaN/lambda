@@ -139,24 +139,11 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
         Gson gson = new Gson();
 
         // Convert the forecast object to a JSON string, then to a Map
-        String json = gson.toJson(forecast);
-        Map<String, Object> map = gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
-
-        Map<String, AttributeValue> forecastAttributes = new HashMap<>();
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            Object value = entry.getValue();
-            if (value instanceof Number) {
-                forecastAttributes.put(entry.getKey(), AttributeValue.builder().n(String.valueOf(value)).build());
-            } else if (value instanceof String) {
-                forecastAttributes.put(entry.getKey(), AttributeValue.builder().s((String) value).build());
-            } else {
-                // Handle other types as necessary, perhaps recursively for nested objects
-            }
-        }
+        String jsonForecast = gson.toJson(forecast);
 
         Map<String, AttributeValue> item = new HashMap<>();
         item.put("id", AttributeValue.builder().s(uniqueID).build());
-        item.put("forecast", AttributeValue.builder().m(forecastAttributes).build());
+        item.put("forecast", AttributeValue.builder().also(jsonForecast).build());
 
         try {
             dynamoDB.putItem(PutItemRequest.builder()

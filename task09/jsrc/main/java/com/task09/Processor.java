@@ -131,10 +131,10 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 
     private static void putItem(WeatherForecast forecast) {
         String uniqueID = UUID.randomUUID().toString();
+        Gson gson = new Gson();
         Map<String, AttributeValue> item = new HashMap<>();
         item.put("id", AttributeValue.builder().s(uniqueID).build());
         item.put("forecast", AttributeValue.builder().s(gson.toJson(forecast)).build());
-
 
         try {
             dynamoDB.putItem(PutItemRequest.builder()
@@ -143,7 +143,6 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
                     .build());
             System.out.println("Item inserted successfully.");
         } catch (DynamoDbException e) {
-
             System.err.println("Error inserting item into table: " + e.getMessage());
         }
     }

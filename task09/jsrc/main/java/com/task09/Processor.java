@@ -107,16 +107,12 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
                     .attributeDefinitions(
                             AttributeDefinition.builder()
                                     .attributeName("id")
-                                    .attributeType(ScalarAttributeType.S)
-                                    .build(),
-                            AttributeDefinition.builder()
-                                    .attributeName("forecast")
-                                    .attributeType(ScalarAttributeType.S) // Storing the forecast as a JSON string
+                                    .attributeType(ScalarAttributeType.S) // The primary key
                                     .build()
                     )
                     .keySchema(KeySchemaElement.builder()
                             .attributeName("id")
-                            .keyType(KeyType.HASH)
+                            .keyType(KeyType.HASH) // 'id' is the hash key
                             .build())
                     .provisionedThroughput(ProvisionedThroughput.builder()
                             .readCapacityUnits(1L)

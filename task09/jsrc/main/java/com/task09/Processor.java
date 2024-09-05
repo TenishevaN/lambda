@@ -46,6 +46,8 @@ import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import java.util.concurrent.ExecutionException;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @LambdaHandler(
         lambdaName = "processor",
@@ -70,6 +72,7 @@ import java.util.concurrent.ExecutionException;
 )
 public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
 
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final DynamoDbClient dynamoDB = DynamoDbClient.builder()
             .region(Region.EU_CENTRAL_1) // Set the appropriate region
@@ -150,13 +153,18 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 
     private static void putItem(WeatherForecast forecast) {
         String uniqueID = UUID.randomUUID().toString();
-        Map<String, Object> forecastMap = forecastToMap(forecast);
 
-        AmazonDynamoDBAsyncClientBuilder clientBuilder = AmazonDynamoDBAsyncClientBuilder.standard();
-        DynamoDB dynamoDB = new DynamoDB(clientBuilder.build());
-
-        Table table = dynamoDB.getTable("cmtr-85e8c71a-Weather-test");
         try {
+            String jsonForecast = objectMapper.writeValueAsString(forecast);
+
+            AmazonDynamoDBAsyncClientBuilder clientBuilder = AmazonDynamoDBAsyncClientBuilder.standard();
+            DynamoDB dynamoDB = new DynamoDB(clientBuilder.build());
+
+            HashMap<String, Object> forecastMap = objectMapper.readValue(jsonForecast, new TypeReference<HashMap<String, Object>>() {});
+
+
+            Table table = dynamoDB.getTable("cmtr-85e8c71a-Weather-test");
+
             table.putItem(new Item()
                     .withPrimaryKey("id", uniqueID)
                     .with("forecast", forecastMap));

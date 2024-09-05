@@ -8,7 +8,10 @@
             "logs:CreateLogStream",
             "logs:PutLogEvents",
             "xray:PutTraceSegments",
-            "xray:PutTelemetryRecords"
+            "xray:PutTelemetryRecords",
+            "xray:GetSamplingRules",
+            "xray:GetSamplingTargets",
+            "xray:GetSamplingStatisticSummaries"
           ],
           "Effect": "Allow",
           "Resource": "*"

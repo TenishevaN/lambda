@@ -148,15 +148,20 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
             StringBuilder rawJsonForecast = new StringBuilder();
 
             rawJsonForecast.append("{");
-            rawJsonForecast.append("\"elevation\":").append(forecast.getElevation()).append(",");
-            rawJsonForecast.append("\"generationtime_ms\":").append(forecast.getGenerationTimeMs()).append(",");
-            rawJsonForecast.append("\"hourly\":").append(mapToListsToJson(forecast.getHourly())).append(",");
-            rawJsonForecast.append("\"hourly_units\":").append(mapToJson(forecast.getHourlyUnits())).append(",");
             rawJsonForecast.append("\"latitude\":").append(forecast.getLatitude()).append(",");
             rawJsonForecast.append("\"longitude\":").append(forecast.getLongitude()).append(",");
+            rawJsonForecast.append("\"generationtime_ms\":").append(forecast.getGenerationTimeMs()).append(",");
+            rawJsonForecast.append("\"utc_offset_seconds\":").append(forecast.getUtcOffsetSeconds());
             rawJsonForecast.append("\"timezone\":\"").append(forecast.getTimezone()).append("\",");
             rawJsonForecast.append("\"timezone_abbreviation\":\"").append(forecast.getTimezoneAbbreviation()).append("\",");
-            rawJsonForecast.append("\"utc_offset_seconds\":").append(forecast.getUtcOffsetSeconds());
+            rawJsonForecast.append("\"elevation\":").append(forecast.getElevation()).append(",");
+            rawJsonForecast.append("\"hourly_units\":").append(mapToJson(forecast.getHourlyUnits())).append(",");
+
+            rawJsonForecast.append("\"hourly\":").append(mapToListsToJson(forecast.getHourly())).append(",");
+
+
+
+
             rawJsonForecast.append("}");
 
 

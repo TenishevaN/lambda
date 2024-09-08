@@ -165,7 +165,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
             rawJsonForecast.append("\"timezone_abbreviation\":\"").append(forecast.getTimezoneAbbreviation()).append("\",");
             rawJsonForecast.append("\"elevation\":").append(forecast.getElevation()).append(",");
             rawJsonForecast.append("\"hourly_units\":").append(mapToJson(forecast.getHourlyUnits())).append(",");
-            rawJsonForecast.append("\"hourly\":").append(mapToJson(forecast.getHourly()));
+            rawJsonForecast.append("\"hourly\":").append(convertMaporHourly(forecast.getHourly()));
             rawJsonForecast.append("}");
 
 
@@ -181,6 +181,22 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
             System.err.println("Error inserting item into table: " + e.getMessage());
             Thread.currentThread().interrupt();
         }
+    }
+
+    private static Map<String, String> convertMaporHourly(Map<String, List<Object>> originalMap) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> convertedMap = new HashMap<>();
+        for (Map.Entry<String, List<Object>> entry : originalMap.entrySet()) {
+            try {
+                String json = objectMapper.writeValueAsString(entry.getValue());
+                convertedMap.put(entry.getKey(), json);
+            } catch (Exception e) {
+                e.printStackTrace();
+                // Handle exception or use a default value
+                convertedMap.put(entry.getKey(), "[]");
+            }
+        }
+        return convertedMap;
     }
 
     private APIGatewayV2HTTPResponse buildResponse(int statusCode, Object body) {

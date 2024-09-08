@@ -135,6 +135,45 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
         }
     }
 
+    private static void putItem(WeatherForecast forecast) {
+
+        try {
+
+            AmazonDynamoDBAsyncClientBuilder clientBuilder = AmazonDynamoDBAsyncClientBuilder.standard();
+            DynamoDB dynamoDB = new DynamoDB(clientBuilder.build());
+
+
+            Table table = dynamoDB.getTable("cmtr-85e8c71a-Weather-test");
+
+            StringBuilder rawJsonForecast = new StringBuilder();
+
+            rawJsonForecast.append("{");
+            rawJsonForecast.append("\"elevation\":").append(forecast.getElevation()).append(",");
+            rawJsonForecast.append("\"generationtime_ms\":").append(forecast.getGenerationTimeMs()).append(",");
+            rawJsonForecast.append("\"hourly\":").append(mapToListsToJson(forecast.getHourly())).append(",");
+            rawJsonForecast.append("\"hourly_units\":").append(mapToJson(forecast.getHourlyUnits())).append(",");
+            rawJsonForecast.append("\"latitude\":").append(forecast.getLatitude()).append(",");
+            rawJsonForecast.append("\"longitude\":").append(forecast.getLongitude()).append(",");
+            rawJsonForecast.append("\"timezone\":\"").append(forecast.getTimezone()).append("\",");
+            rawJsonForecast.append("\"timezone_abbreviation\":\"").append(forecast.getTimezoneAbbreviation()).append("\",");
+            rawJsonForecast.append("\"utc_offset_seconds\":").append(forecast.getUtcOffsetSeconds());
+            rawJsonForecast.append("}");
+
+
+            TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() { };
+
+            Object forecastMap = objectMapper.readValue(rawJsonForecast.toString(), typeRef);
+
+            table.putItem(new Item()
+                    .withPrimaryKey("id", UUID.randomUUID().toString())
+                    .with("forecast", forecastMap));
+            System.out.println("Item inserted successfully.");
+        } catch (Exception e) {
+            System.err.println("Error inserting item into table: " + e.getMessage());
+            Thread.currentThread().interrupt();
+        }
+    }
+
     private APIGatewayV2HTTPResponse buildResponse(int statusCode, Object body) {
         return APIGatewayV2HTTPResponse.builder()
                 .withStatusCode(statusCode)
@@ -149,31 +188,45 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
         return buildResponse(200, forecast);
     }
 
-
-
-    private static void putItem(WeatherForecast forecast) {
-        String uniqueID = UUID.randomUUID().toString();
-
-        try {
-            String jsonForecast = objectMapper.writeValueAsString(forecast);
-
-            AmazonDynamoDBAsyncClientBuilder clientBuilder = AmazonDynamoDBAsyncClientBuilder.standard();
-            DynamoDB dynamoDB = new DynamoDB(clientBuilder.build());
-
-            HashMap<String, Object> forecastMap = objectMapper.readValue(jsonForecast, new TypeReference<HashMap<String, Object>>() {});
-
-
-            Table table = dynamoDB.getTable("cmtr-85e8c71a-Weather-test");
-
-            table.putItem(new Item()
-                    .withPrimaryKey("id", uniqueID)
-                    .with("forecast", forecastMap));
-            System.out.println("Item inserted successfully.");
-        } catch (Exception e) {
-            System.err.println("Error inserting item into table: " + e.getMessage());
-            Thread.currentThread().interrupt();
+    private static String mapToJson(Map<String, String> map) {
+        StringBuilder json = new StringBuilder();
+        json.append("{");
+        boolean first = true;
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            if (!first) json.append(",");
+            json.append("\"").append(entry.getKey()).append("\":");
+            json.append("\"").append(entry.getValue()).append("\"");
+            first = false;
         }
+        json.append("}");
+        return json.toString();
     }
+
+    private static String mapToListsToJson(Map<String, List<Object>> map) {
+        StringBuilder json = new StringBuilder();
+        json.append("{");
+        boolean first = true;
+        for (Map.Entry<String, List<Object>> entry : map.entrySet()) {
+            if (!first) json.append(",");
+            json.append("\"").append(entry.getKey()).append("\":");
+            json.append("[");
+            boolean firstItem = true;
+            for (Object item : entry.getValue()) {
+                if (!firstItem) json.append(",");
+                if (item instanceof String) {
+                    json.append("\"").append(item).append("\"");
+                } else {
+                    json.append(item);
+                }
+                firstItem = false;
+            }
+            json.append("]");
+            first = false;
+        }
+        json.append("}");
+        return json.toString();
+    }
+
 
     private static Map<String, Object> forecastToMap(WeatherForecast forecast) {
         Map<String, Object> forecastMap = new HashMap<>();

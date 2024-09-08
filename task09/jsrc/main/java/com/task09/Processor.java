@@ -145,22 +145,17 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 
         try {
             AmazonDynamoDBAsync client = AmazonDynamoDBAsyncClientBuilder.standard()
-                    .withRegion(Regions.EU_CENTRAL_1) // Specify the region
+                    .withRegion(Regions.EU_CENTRAL_1)
                     .build();
-
-
             DynamoDB dynamoDB = new DynamoDB(client);
-
-
             Table table = dynamoDB.getTable("cmtr-85e8c71a-Weather-test");
 
             StringBuilder rawJsonForecast = new StringBuilder();
-
             rawJsonForecast.append("{");
             rawJsonForecast.append("\"latitude\":").append(forecast.getLatitude()).append(",");
             rawJsonForecast.append("\"longitude\":").append(forecast.getLongitude()).append(",");
             rawJsonForecast.append("\"generationtime_ms\":").append(forecast.getGenerationTimeMs()).append(",");
-            rawJsonForecast.append("\"utc_offset_seconds\":").append(forecast.getUtcOffsetSeconds()).append(","); // Added comma here
+            rawJsonForecast.append("\"utc_offset_seconds\":").append(forecast.getUtcOffsetSeconds()).append(",");
             rawJsonForecast.append("\"timezone\":\"").append(forecast.getTimezone()).append("\",");
             rawJsonForecast.append("\"timezone_abbreviation\":\"").append(forecast.getTimezoneAbbreviation()).append("\",");
             rawJsonForecast.append("\"elevation\":").append(forecast.getElevation()).append(",");
@@ -168,14 +163,12 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
             rawJsonForecast.append("\"hourly\":").append(mapToJson(forecast.getHourly()));
             rawJsonForecast.append("}");
 
-
-            TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() { };
-
-            Object forecastMap = objectMapper.readValue(rawJsonForecast.toString(), typeRef);
+            ObjectMapper objectMapper = new ObjectMapper();
+            HashMap<String, Object> forecastMap = objectMapper.readValue(rawJsonForecast.toString(), new TypeReference<HashMap<String, Object>>() {});
 
             table.putItem(new Item()
                     .withPrimaryKey("id", UUID.randomUUID().toString())
-                    .with("forecast", forecastMap));
+                    .withMap("forecast", forecastMap));
             System.out.println("Item inserted successfully.");
         } catch (Exception e) {
             System.err.println("Error inserting item into table: " + e.getMessage());
@@ -234,6 +227,16 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
         }
         json.append("}");
         return json.toString();
+    }
+
+    private static String mapToJsonForHourly(Map<String, List<Object>> map) {
+        var ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return "{}"; // Return empty JSON object in case of error
+        }
     }
 
 

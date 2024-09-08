@@ -165,7 +165,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
             rawJsonForecast.append("\"timezone_abbreviation\":\"").append(forecast.getTimezoneAbbreviation()).append("\",");
             rawJsonForecast.append("\"elevation\":").append(forecast.getElevation()).append(",");
             rawJsonForecast.append("\"hourly_units\":").append(mapToJson(forecast.getHourlyUnits())).append(",");
-            rawJsonForecast.append("\"hourly\":").append(mapToListsToJson(forecast.getHourly()));
+            rawJsonForecast.append("\"hourly\":").append(mapToJson(forecast.getHourly()));
             rawJsonForecast.append("}");
 
 

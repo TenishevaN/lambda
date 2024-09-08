@@ -165,7 +165,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
             rawJsonForecast.append("\"timezone_abbreviation\":\"").append(forecast.getTimezoneAbbreviation()).append("\",");
             rawJsonForecast.append("\"elevation\":").append(forecast.getElevation()).append(",");
             rawJsonForecast.append("\"hourly_units\":").append(mapToJson(forecast.getHourlyUnits())).append(",");
-            rawJsonForecast.append("\"hourly\":").append(convertMaporHourly(forecast.getHourly()));
+            rawJsonForecast.append("\"hourly\":").append(convertMapForHourly(forecast.getHourly()));
             rawJsonForecast.append("}");
 
 
@@ -183,16 +183,19 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
         }
     }
 
-    private static Map<String, String> convertMaporHourly(Map<String, List<Object>> originalMap) {
+    private static Map<String, String> convertMapForHourly(Map<String, List<Object>> originalMap) {
         ObjectMapper objectMapper = new ObjectMapper();
         Map<String, String> convertedMap = new HashMap<>();
         for (Map.Entry<String, List<Object>> entry : originalMap.entrySet()) {
+            if("wind_speed_10m".equals(entry.getKey())){
+                continue;
+            }
             try {
                 String json = objectMapper.writeValueAsString(entry.getValue());
                 convertedMap.put(entry.getKey(), json);
+                System.out.println("Key: " + entry.getKey() + " - JSON: " + json); // Debug print
             } catch (Exception e) {
                 e.printStackTrace();
-                // Handle exception or use a default value
                 convertedMap.put(entry.getKey(), "[]");
             }
         }

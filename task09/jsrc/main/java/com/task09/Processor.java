@@ -24,8 +24,10 @@ import com.syndicate.deployment.model.lambda.url.AuthType;
 import com.syndicate.deployment.model.lambda.url.InvokeMode;
 import com.openmeteo.sdk.OpenMeteoClient;
 import com.openmeteo.sdk.WeatherForecast;
+
 import java.util.function.Function;
 import java.util.*;
+
 import com.amazonaws.xray.AWSXRay;
 
 import com.syndicate.deployment.model.TracingMode;
@@ -35,9 +37,11 @@ import com.google.gson.reflect.TypeToken;
 
 
 import java.lang.reflect.Field;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+
 import java.lang.reflect.Field;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsync;
@@ -49,10 +53,12 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsyncClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.Table;
+
 import java.util.concurrent.ExecutionException;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 @LambdaHandler(
         lambdaName = "processor",
@@ -143,6 +149,19 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 
     private static void putItem(WeatherForecast forecast) {
 
+        StringBuilder rawJsonForecast = new StringBuilder();
+        rawJsonForecast.append("{");
+        rawJsonForecast.append("\"latitude\":").append(forecast.getLatitude()).append(",");
+        rawJsonForecast.append("\"longitude\":").append(forecast.getLongitude()).append(",");
+        rawJsonForecast.append("\"generationtime_ms\":").append(forecast.getGenerationTimeMs()).append(",");
+        rawJsonForecast.append("\"utc_offset_seconds\":").append(forecast.getUtcOffsetSeconds()).append(","); // Added comma here
+        rawJsonForecast.append("\"timezone\":\"").append(forecast.getTimezone()).append("\",");
+        rawJsonForecast.append("\"timezone_abbreviation\":\"").append(forecast.getTimezoneAbbreviation()).append("\",");
+        rawJsonForecast.append("\"elevation\":").append(forecast.getElevation()).append(",");
+        rawJsonForecast.append("\"hourly_units\":").append(mapToJson(forecast.getHourlyUnits())).append(",");
+        rawJsonForecast.append("\"hourly\":").append(mapToJson(convertMapForHourly(forecast.getHourly())));
+        rawJsonForecast.append("}");
+
         try {
             AmazonDynamoDBAsync client = AmazonDynamoDBAsyncClientBuilder.standard()
                     .withRegion(Regions.EU_CENTRAL_1) // Specify the region
@@ -154,49 +173,62 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 
             Table table = dynamoDB.getTable("cmtr-85e8c71a-Weather-test");
 
-            StringBuilder rawJsonForecast = new StringBuilder();
-
-            rawJsonForecast.append("{");
-            rawJsonForecast.append("\"latitude\":").append(forecast.getLatitude()).append(",");
-            rawJsonForecast.append("\"longitude\":").append(forecast.getLongitude()).append(",");
-            rawJsonForecast.append("\"generationtime_ms\":").append(forecast.getGenerationTimeMs()).append(",");
-            rawJsonForecast.append("\"utc_offset_seconds\":").append(forecast.getUtcOffsetSeconds()).append(","); // Added comma here
-            rawJsonForecast.append("\"timezone\":\"").append(forecast.getTimezone()).append("\",");
-            rawJsonForecast.append("\"timezone_abbreviation\":\"").append(forecast.getTimezoneAbbreviation()).append("\",");
-            rawJsonForecast.append("\"elevation\":").append(forecast.getElevation()).append(",");
-            rawJsonForecast.append("\"hourly_units\":").append(mapToJson(forecast.getHourlyUnits())).append(",");
-            rawJsonForecast.append("\"hourly\":").append(convertMapForHourly(forecast.getHourly()));
-            rawJsonForecast.append("}");
+            ObjectMapper objectMapper = new ObjectMapper();
 
 
-            TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() { };
+            TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
+            };
+            HashMap<String, Object> forecastMap = objectMapper.readValue(rawJsonForecast.toString(), typeRef);
 
-            Object forecastMap = objectMapper.readValue(rawJsonForecast.toString(), typeRef);
-
+            System.out.println("inserted forecastMap: " + forecastMap);
+            var id = UUID.randomUUID().toString().replace("=", "");
+            System.out.println("id: " + id);
             table.putItem(new Item()
-                    .withPrimaryKey("id", UUID.randomUUID().toString())
+                    .withPrimaryKey("id", id)
                     .with("forecast", forecastMap));
             System.out.println("Item inserted successfully.");
         } catch (Exception e) {
+
+
             System.err.println("Error inserting item into table: " + e.getMessage());
             Thread.currentThread().interrupt();
         }
     }
 
+    private static String mapToJson(Map<String, String> map) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return "{}";
+        }
+    }
+
+//    private static String mapToJson(Map<String, String> map) {
+//        StringBuilder json = new StringBuilder();
+//        json.append("{");
+//        boolean first = true;
+//        for (Map.Entry<String, String> entry : map.entrySet()) {
+//            if (!first) json.append(",");
+//            json.append("\"").append("\"" + entry.getKey() + "\"").append("\":");
+//            json.append("\"").append(entry.getValue()).append("\"");
+//            first = false;
+//        }
+//        json.append("}");
+//        return json.toString();
+//    }
+
     private static Map<String, String> convertMapForHourly(Map<String, List<Object>> originalMap) {
         ObjectMapper objectMapper = new ObjectMapper();
         Map<String, String> convertedMap = new HashMap<>();
         for (Map.Entry<String, List<Object>> entry : originalMap.entrySet()) {
-            if("wind_speed_10m".equals(entry.getKey())){
-                continue;
-            }
             try {
                 String json = objectMapper.writeValueAsString(entry.getValue());
                 convertedMap.put(entry.getKey(), json);
-                System.out.println("Key: " + entry.getKey() + " - JSON: " + json); // Debug print
             } catch (Exception e) {
+                System.out.println("Error converting map for hourly data: " + e.getMessage());
                 e.printStackTrace();
-                convertedMap.put(entry.getKey(), "[]");
             }
         }
         return convertedMap;
@@ -216,19 +248,8 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
         return buildResponse(200, forecast);
     }
 
-    private static String mapToJson(Map<String, String> map) {
-        StringBuilder json = new StringBuilder();
-        json.append("{");
-        boolean first = true;
-        for (Map.Entry<String, String> entry : map.entrySet()) {
-            if (!first) json.append(",");
-            json.append("\"").append(entry.getKey()).append("\":");
-            json.append("\"").append(entry.getValue()).append("\"");
-            first = false;
-        }
-        json.append("}");
-        return json.toString();
-    }
+
+
 
     private static String mapToListsToJson(Map<String, List<Object>> map) {
         StringBuilder json = new StringBuilder();
@@ -253,16 +274,6 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
         }
         json.append("}");
         return json.toString();
-    }
-
-    private static String mapToJsonForHourly(Map<String, List<Object>> map) {
-         ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            return objectMapper.writeValueAsString(map);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            return "{}"; // Return empty JSON object in case of error
-        }
     }
 
 
@@ -300,7 +311,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
     }
 
     private APIGatewayV2HTTPResponse notFoundResponse(APIGatewayV2HTTPEvent requestEvent) {
-        return buildResponse(404, "The resource with method and path is not found with method:"+  getMethod(requestEvent) +
+        return buildResponse(404, "The resource with method and path is not found with method:" + getMethod(requestEvent) +
                 " and path:  " + getPath(requestEvent));
     }
 

@@ -40,6 +40,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import java.lang.reflect.Field;
 
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsync;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsyncClientBuilder;
+
+import com.amazonaws.regions.Regions;
+
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsyncClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
@@ -83,7 +88,8 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private static final Map<String, String> responseHeaders = Map.of("Content-Type", "application/json");
     private final Map<RouteKey, Function<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse>> routeHandlers = Map.of(
-            new RouteKey("GET", "/"), this::handleGetWeather);
+            new RouteKey("GET", "/"), this::handleGetWeather,
+            new RouteKey("GET", ""), this::handleGetWeather);
 
     public Processor() {
         ensureTableExists();
@@ -138,9 +144,12 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
     private static void putItem(WeatherForecast forecast) {
 
         try {
+            AmazonDynamoDBAsync client = AmazonDynamoDBAsyncClientBuilder.standard()
+                    .withRegion(Regions.EU_CENTRAL_1) // Specify the region
+                    .build();
 
-            AmazonDynamoDBAsyncClientBuilder clientBuilder = AmazonDynamoDBAsyncClientBuilder.standard();
-            DynamoDB dynamoDB = new DynamoDB(clientBuilder.build());
+
+            DynamoDB dynamoDB = new DynamoDB(client);
 
 
             Table table = dynamoDB.getTable("cmtr-85e8c71a-Weather-test");
@@ -151,17 +160,12 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
             rawJsonForecast.append("\"latitude\":").append(forecast.getLatitude()).append(",");
             rawJsonForecast.append("\"longitude\":").append(forecast.getLongitude()).append(",");
             rawJsonForecast.append("\"generationtime_ms\":").append(forecast.getGenerationTimeMs()).append(",");
-            rawJsonForecast.append("\"utc_offset_seconds\":").append(forecast.getUtcOffsetSeconds());
+            rawJsonForecast.append("\"utc_offset_seconds\":").append(forecast.getUtcOffsetSeconds()).append(","); // Added comma here
             rawJsonForecast.append("\"timezone\":\"").append(forecast.getTimezone()).append("\",");
             rawJsonForecast.append("\"timezone_abbreviation\":\"").append(forecast.getTimezoneAbbreviation()).append("\",");
             rawJsonForecast.append("\"elevation\":").append(forecast.getElevation()).append(",");
             rawJsonForecast.append("\"hourly_units\":").append(mapToJson(forecast.getHourlyUnits())).append(",");
-
-            rawJsonForecast.append("\"hourly\":").append(mapToListsToJson(forecast.getHourly())).append(",");
-
-
-
-
+            rawJsonForecast.append("\"hourly\":").append(mapToListsToJson(forecast.getHourly()));
             rawJsonForecast.append("}");
 
 

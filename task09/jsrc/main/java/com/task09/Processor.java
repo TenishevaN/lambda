@@ -165,7 +165,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
             rawJsonForecast.append("\"timezone_abbreviation\":\"").append(forecast.getTimezoneAbbreviation()).append("\",");
             rawJsonForecast.append("\"elevation\":").append(forecast.getElevation()).append(",");
             rawJsonForecast.append("\"hourly_units\":").append(mapToJson(forecast.getHourlyUnits())).append(",");
-         //   rawJsonForecast.append("\"hourly\":").append(mapToJson(forecast.getHourly()));
+            rawJsonForecast.append("\"hourly\":").append(mapToJson(forecast.getHourly()));
             rawJsonForecast.append("}");
 
 
@@ -237,7 +237,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
     }
 
     private static String mapToJsonForHourly(Map<String, List<Object>> map) {
-        var ObjectMapper objectMapper = new ObjectMapper();
+         ObjectMapper objectMapper = new ObjectMapper();
         try {
             return objectMapper.writeValueAsString(map);
         } catch (JsonProcessingException e) {

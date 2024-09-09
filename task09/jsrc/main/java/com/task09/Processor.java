@@ -58,6 +58,15 @@ import java.util.concurrent.ExecutionException;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 @LambdaHandler(
@@ -149,6 +158,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 
     private static void putItem(WeatherForecast forecast) {
 
+
         StringBuilder rawJsonForecast = new StringBuilder();
         rawJsonForecast.append("{");
         rawJsonForecast.append("\"latitude\":").append(forecast.getLatitude()).append(",");
@@ -158,13 +168,18 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
         rawJsonForecast.append("\"timezone\":\"").append(forecast.getTimezone()).append("\",");
         rawJsonForecast.append("\"timezone_abbreviation\":\"").append(forecast.getTimezoneAbbreviation()).append("\",");
         rawJsonForecast.append("\"elevation\":").append(forecast.getElevation()).append(",");
-        rawJsonForecast.append("\"hourly_units\":").append(mapToJson(forecast.getHourlyUnits())).append(",");
-        rawJsonForecast.append("\"hourly\":").append(mapToJson(convertMapForHourly(forecast.getHourly())));
+
+        String temperatureUnit = forecast.getHourlyUnits().get("temperature_2m");
+        String timeUnit = forecast.getHourlyUnits().get("time");
+      //  rawJsonForecast.append("\"hourly_units\":{\"temperature_2m\":\"").append(temperatureUnit).append("\",\"time\":\"").append(timeUnit).append("\"},");
+        rawJsonForecast.append("\"hourly_units\":{\"time\":\"").append(timeUnit).append("\",\"temperature_2m\":\"").append(temperatureUnit).append("\"},");
+
+        rawJsonForecast.append("\"hourly\":").append(convertMapForHourly(forecast.getHourly()));
         rawJsonForecast.append("}");
 
         try {
             AmazonDynamoDBAsync client = AmazonDynamoDBAsyncClientBuilder.standard()
-                    .withRegion(Regions.EU_CENTRAL_1) // Specify the region
+                    .withRegion(Regions.EU_CENTRAL_1)
                     .build();
 
 
@@ -205,33 +220,41 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
         }
     }
 
-//    private static String mapToJson(Map<String, String> map) {
-//        StringBuilder json = new StringBuilder();
-//        json.append("{");
-//        boolean first = true;
-//        for (Map.Entry<String, String> entry : map.entrySet()) {
-//            if (!first) json.append(",");
-//            json.append("\"").append("\"" + entry.getKey() + "\"").append("\":");
-//            json.append("\"").append(entry.getValue()).append("\"");
-//            first = false;
-//        }
-//        json.append("}");
-//        return json.toString();
-//    }
 
-    private static Map<String, String> convertMapForHourly(Map<String, List<Object>> originalMap) {
+
+
+    private static String convertMapForHourly(Map<String, List<Object>> originalMap) {
         ObjectMapper objectMapper = new ObjectMapper();
-        Map<String, String> convertedMap = new HashMap<>();
-        for (Map.Entry<String, List<Object>> entry : originalMap.entrySet()) {
-            try {
-                String json = objectMapper.writeValueAsString(entry.getValue());
-                convertedMap.put(entry.getKey(), json);
-            } catch (Exception e) {
-                System.out.println("Error converting map for hourly data: " + e.getMessage());
-                e.printStackTrace();
-            }
+        Map<String, Object[]> hourlyData = new HashMap<>();
+
+        // Safely convert elements to String arrays
+        String[] temperatureValues = convertListToStringArray(originalMap.get("temperature_2m"));
+        String[] timeValues = convertListToStringArray(originalMap.get("time"));
+
+        if (temperatureValues != null && timeValues != null) {
+            hourlyData.put("temperature_2m", temperatureValues);
+            hourlyData.put("time", timeValues);
+        } else {
+            System.out.println("Error: Temperature or Time data is missing.");
+            return "{}";
         }
-        return convertedMap;
+
+        try {
+            return objectMapper.writeValueAsString(hourlyData);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            System.out.println("Failed to serialize hourly data. Temperature List: " + temperatureValues + ", Time List: " + timeValues);
+            return "{}";
+        }
+    }
+
+    private static String[] convertListToStringArray(List<Object> list) {
+        if (list != null) {
+            return list.stream()
+                    .map(Object::toString)
+                    .toArray(String[]::new);
+        }
+        return null;
     }
 
     private APIGatewayV2HTTPResponse buildResponse(int statusCode, Object body) {
@@ -247,35 +270,6 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
         putItem(forecast);
         return buildResponse(200, forecast);
     }
-
-
-
-
-    private static String mapToListsToJson(Map<String, List<Object>> map) {
-        StringBuilder json = new StringBuilder();
-        json.append("{");
-        boolean first = true;
-        for (Map.Entry<String, List<Object>> entry : map.entrySet()) {
-            if (!first) json.append(",");
-            json.append("\"").append(entry.getKey()).append("\":");
-            json.append("[");
-            boolean firstItem = true;
-            for (Object item : entry.getValue()) {
-                if (!firstItem) json.append(",");
-                if (item instanceof String) {
-                    json.append("\"").append(item).append("\"");
-                } else {
-                    json.append(item);
-                }
-                firstItem = false;
-            }
-            json.append("]");
-            first = false;
-        }
-        json.append("}");
-        return json.toString();
-    }
-
 
     private static Map<String, Object> forecastToMap(WeatherForecast forecast) {
         Map<String, Object> forecastMap = new HashMap<>();

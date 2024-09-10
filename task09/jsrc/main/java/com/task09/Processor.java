@@ -48,6 +48,11 @@ import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.Table;
 
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
+import com.amazonaws.services.dynamodbv2.model.PutItemResult;
+
 import java.util.concurrent.ExecutionException;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -110,7 +115,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 
         try {
             dynamoDB.describeTable(DescribeTableRequest.builder()
-                    .tableName("cmtr-85e8c71a-Weather")
+                    .tableName("cmtr-85e8c71a-Weather-test")
                     .build());
             System.out.println("Table already exists.");
         } catch (ResourceNotFoundException e) {
@@ -122,7 +127,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
     private static void createTable() {
         try {
             dynamoDB.createTable(CreateTableRequest.builder()
-                    .tableName("cmtr-85e8c71a-Weather")
+                    .tableName("cmtr-85e8c71a-Weather-test")
                     .attributeDefinitions(
                             AttributeDefinition.builder()
                                     .attributeName("id")
@@ -172,31 +177,23 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
                     .withRegion(Regions.EU_CENTRAL_1)
                     .build();
 
-
             DynamoDB dynamoDB = new DynamoDB(client);
-
-
-            Table table = dynamoDB.getTable("cmtr-85e8c71a-Weather");
+            Table table = dynamoDB.getTable("cmtr-85e8c71a-Weather-test");
 
             ObjectMapper objectMapper = new ObjectMapper();
-
-
-            TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
-            };
+            TypeReference<HashMap<String, Object>> typeRef = new TypeReference<>() {};
             HashMap<String, Object> forecastMap = objectMapper.readValue(rawJsonForecast.toString(), typeRef);
 
-            System.out.println("inserted forecastMap: " + forecastMap);
-            var id = UUID.randomUUID().toString().replace("=", "");
-            System.out.println("id: " + id);
+            String id = UUID.randomUUID().toString();
             table.putItem(new Item()
                     .withPrimaryKey("id", id)
-                    .with("forecast", forecastMap));
-            System.out.println("Item inserted successfully.");
+                    .withMap("forecast", forecastMap));
+
+            System.out.println("Item inserted successfully with ID: " + id);
+            System.out.println("Item inserted successfully with ID: " + forecastMap);
         } catch (Exception e) {
-
-
             System.err.println("Error inserting item into table: " + e.getMessage());
-            Thread.currentThread().interrupt();
+            e.printStackTrace();
         }
     }
 
@@ -217,8 +214,8 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
         ObjectMapper objectMapper = new ObjectMapper();
         Map<String, Object[]> hourlyData = new HashMap<>();
 
-        String[] temperatureValues = convertListToStringArray(originalMap.get("temperature_2m"));
-        String[] timeValues = convertListToStringArray(originalMap.get("time"));
+        Object[] temperatureValues = convertListToObjectArray(originalMap.get("temperature_2m"));
+        Object[] timeValues = convertListToObjectArray(originalMap.get("time"));
 
         if (temperatureValues != null && timeValues != null) {
             hourlyData.put("temperature_2m", temperatureValues);
@@ -237,13 +234,11 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
         }
     }
 
-    private static String[] convertListToStringArray(List<String> list) {
-        if (list != null) {
-            return list.stream()
-                    .map(Object::toString)
-                    .toArray(String[]::new);
-        }
-        return null;
+    private static Object[] convertListToObjectArray(List<Object> list) {
+        return list.stream()
+                .filter(item -> item != null)
+                .map(Object::toString)
+                .toArray(Object[]::new);
     }
 
     private APIGatewayV2HTTPResponse buildResponse(int statusCode, Object body) {

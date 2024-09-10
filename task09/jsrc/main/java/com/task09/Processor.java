@@ -1,6 +1,5 @@
 package com.task09;
 
-
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
@@ -35,9 +34,6 @@ import com.syndicate.deployment.model.TracingMode;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-
-import java.lang.reflect.Field;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -45,10 +41,8 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import java.lang.reflect.Field;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsync;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsyncClientBuilder;
 
 import com.amazonaws.regions.Regions;
-
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsyncClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
@@ -58,15 +52,11 @@ import java.util.concurrent.ExecutionException;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 @LambdaHandler(
@@ -95,7 +85,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final DynamoDbClient dynamoDB = DynamoDbClient.builder()
-            .region(Region.EU_CENTRAL_1) // Set the appropriate region
+            .region(Region.EU_CENTRAL_1)
             .build();
 
 
@@ -120,7 +110,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 
         try {
             dynamoDB.describeTable(DescribeTableRequest.builder()
-                    .tableName("cmtr-85e8c71a-Weather-test")
+                    .tableName("cmtr-85e8c71a-Weather")
                     .build());
             System.out.println("Table already exists.");
         } catch (ResourceNotFoundException e) {
@@ -132,16 +122,16 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
     private static void createTable() {
         try {
             dynamoDB.createTable(CreateTableRequest.builder()
-                    .tableName("cmtr-85e8c71a-Weather-test")
+                    .tableName("cmtr-85e8c71a-Weather")
                     .attributeDefinitions(
                             AttributeDefinition.builder()
                                     .attributeName("id")
-                                    .attributeType(ScalarAttributeType.S) // The primary key
+                                    .attributeType(ScalarAttributeType.S)
                                     .build()
                     )
                     .keySchema(KeySchemaElement.builder()
                             .attributeName("id")
-                            .keyType(KeyType.HASH) // 'id' is the hash key
+                            .keyType(KeyType.HASH)
                             .build())
                     .provisionedThroughput(ProvisionedThroughput.builder()
                             .readCapacityUnits(1L)
@@ -164,7 +154,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
         rawJsonForecast.append("\"latitude\":").append(forecast.getLatitude()).append(",");
         rawJsonForecast.append("\"longitude\":").append(forecast.getLongitude()).append(",");
         rawJsonForecast.append("\"generationtime_ms\":").append(forecast.getGenerationTimeMs()).append(",");
-        rawJsonForecast.append("\"utc_offset_seconds\":").append(forecast.getUtcOffsetSeconds()).append(","); // Added comma here
+        rawJsonForecast.append("\"utc_offset_seconds\":").append(forecast.getUtcOffsetSeconds()).append(",");
         rawJsonForecast.append("\"timezone\":\"").append(forecast.getTimezone()).append("\",");
         rawJsonForecast.append("\"timezone_abbreviation\":\"").append(forecast.getTimezoneAbbreviation()).append("\",");
         rawJsonForecast.append("\"elevation\":").append(forecast.getElevation()).append(",");
@@ -186,7 +176,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
             DynamoDB dynamoDB = new DynamoDB(client);
 
 
-            Table table = dynamoDB.getTable("cmtr-85e8c71a-Weather-test");
+            Table table = dynamoDB.getTable("cmtr-85e8c71a-Weather");
 
             ObjectMapper objectMapper = new ObjectMapper();
 
@@ -227,7 +217,6 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
         ObjectMapper objectMapper = new ObjectMapper();
         Map<String, Object[]> hourlyData = new HashMap<>();
 
-        // Safely convert elements to String arrays
         String[] temperatureValues = convertListToStringArray(originalMap.get("temperature_2m"));
         String[] timeValues = convertListToStringArray(originalMap.get("time"));
 
@@ -248,7 +237,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
         }
     }
 
-    private static String[] convertListToStringArray(List<Object> list) {
+    private static String[] convertListToStringArray(List<String> list) {
         if (list != null) {
             return list.stream()
                     .map(Object::toString)

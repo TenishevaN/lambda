@@ -1,5 +1,5 @@
 {
-  "lambda-logging-and-xray-execution": {
+  "lambda-cognito-execution": {
     "policy_content": {
       "Statement": [
         {
@@ -7,33 +7,25 @@
             "logs:CreateLogGroup",
             "logs:CreateLogStream",
             "logs:PutLogEvents",
-            "xray:PutTraceSegments",
-            "xray:PutTelemetryRecords",
-            "xray:GetSamplingRules",
-            "xray:GetSamplingTargets",
-            "xray:GetSamplingStatisticSummaries"
-          ],
-          "Effect": "Allow",
-          "Resource": "*"
-        }
-      ],
-      "Version": "2012-10-17"
-    },
-    "resource_type": "iam_policy"
-  },
-  "lambda-dynamodb-execution": {
-    "policy_content": {
-      "Statement": [
-        {
-          "Action": [
-            "dynamodb:DescribeTable",
-            "dynamodb:CreateTable",
-            "dynamodb:PutItem",
             "dynamodb:GetItem",
-            "dynamodb:UpdateItem",
+            "dynamodb:Query",
+            "dynamodb:PutItem",
+            "dynamodb:Batch*",
             "dynamodb:DeleteItem",
             "dynamodb:Scan",
-            "dynamodb:Query"
+            "cognito-idp:DescribeUserPool",
+            "cognito-idp:GetUser",
+            "cognito-idp:ListUsers",
+            "cognito-idp:AdminCreateUser",
+            "cognito-idp:AdminInitiateAuth",
+            "cognito-idp:GetIdentityProviderByIdentifier",
+            "cognito-idp:ListUserPools",
+            "cognito-idp:ListUserPoolClients",
+            "cognito-idp:AdminRespondToAuthChallenge",
+            "cognito-idp:AdminConfirmSignUp",
+            "ssm:PutParameter",
+            "ssm:GetParameter",
+            "kms:Decrypt"
           ],
           "Effect": "Allow",
           "Resource": "*"
@@ -43,16 +35,17 @@
     },
     "resource_type": "iam_policy"
   },
-  "processor-role": {
+
+  "api-handler-role": {
     "predefined_policies": [],
     "principal_service": "lambda",
     "custom_policies": [
-      "lambda-logging-and-xray-execution",
-      "lambda-dynamodb-execution"
+      "lambda-cognito-execution"
     ],
     "resource_type": "iam_role"
   },
-  "simple-booking-userpool": {
+
+  "${booking_userpool}": {
     "resource_type": "cognito_idp",
     "password_policy": {
       "minimum_length": 8,
@@ -79,15 +72,26 @@
   "task10_api": {
     "resource_type": "api_gateway",
     "deploy_stage": "api",
+    "authorizers": {
+      "authorizer": {
+        "type": "COGNITO_USER_POOLS",
+        "identity_source": "method.request.header.Authorization",
+        "user_pools": [
+          "${pool_name}"
+        ],
+        "ttl": 300
+      }
+    },
     "dependencies": [],
     "resources": {
       "/signin": {
-        "enable_cors": true,
+        "enable_cors": false,
         "POST": {
           "authorization_type": "NONE",
           "integration_type": "lambda",
           "lambda_name": "api_handler",
           "api_key_required": false,
+          "enable_proxy": true,
           "method_request_parameters": {},
           "integration_request_body_template": {},
           "responses": [],
@@ -96,12 +100,13 @@
         }
       },
       "/signup": {
-        "enable_cors": true,
+        "enable_cors": false,
         "POST": {
           "authorization_type": "NONE",
           "integration_type": "lambda",
           "lambda_name": "api_handler",
           "api_key_required": false,
+          "enable_proxy": true,
           "method_request_parameters": {},
           "integration_request_body_template": {},
           "responses": [],
@@ -110,7 +115,7 @@
         }
       },
       "/tables": {
-        "enable_cors": true,
+        "enable_cors": false,
         "GET": {
           "authorization_type": "authorizer",
           "integration_type": "lambda",
@@ -135,7 +140,7 @@
         }
       },
       "/tables/{tableId}": {
-        "enable_cors": true,
+        "enable_cors": false,
         "GET": {
           "authorization_type": "authorizer",
           "integration_type": "lambda",
@@ -180,12 +185,12 @@
         "identity_source": "method.request.header.Authorization",
         "ttl": 300,
         "user_pools": [
-          "simple-booking-userpool"
+          "${pool_name}"
         ]
       }
     }
   },
-  "Tables": {
+  "${tables_table}": {
     "resource_type": "dynamodb_table",
     "hash_key_name": "id",
     "hash_key_type": "S",
@@ -194,7 +199,7 @@
     "global_indexes": [],
     "autoscaling": []
   },
-  "Reservations": {
+  "${reservations_table}": {
     "resource_type": "dynamodb_table",
     "hash_key_name": "id",
     "hash_key_type": "S",

@@ -29,7 +29,7 @@ import static com.syndicate.deployment.model.environment.ValueTransformer.USER_P
 
 
 @DependsOn(resourceType = ResourceType.COGNITO_USER_POOL, name = "${booking_userpool}")
-@LambdaHandler(lambdaName = "api_handler", roleName = "api_handler-role", isPublishVersion = false, logsExpiration = RetentionSetting.SYNDICATE_ALIASES_SPECIFIED, runtime = DeploymentRuntime.JAVA11)
+@LambdaHandler(lambdaName = "api_handler", roleName = "api-handler-role", isPublishVersion = false, logsExpiration = RetentionSetting.SYNDICATE_ALIASES_SPECIFIED, runtime = DeploymentRuntime.JAVA11)
 @EnvironmentVariables(value = {
 		@EnvironmentVariable(key = "REGION", value = "${region}"),
 		@EnvironmentVariable(key = "COGNITO_ID", value = "${booking_userpool}", valueTransformer = USER_POOL_NAME_TO_USER_POOL_ID),
@@ -75,8 +75,7 @@ public class ApiHandler implements RequestHandler<APIGatewayProxyRequestEvent, A
 		return Map.of(
 				new RouteKey("GET", "/"), new GetRootHandler(),
 				new RouteKey("POST", "/signup"), new PostSignUpHandler(cognitoClient),
-				new RouteKey("POST", "/signin"), new PostSignInHandler(cognitoClient),
-				new RouteKey("GET", "/secured"), new GetSecuredHandler()
+				new RouteKey("POST", "/signin"), new PostSignInHandler(cognitoClient)
 		);
 	}
 

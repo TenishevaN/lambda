@@ -1,18 +1,3 @@
-/*
- * Copyright 2024 EPAM Systems, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.demoapigatewaycognito.handler;
 
 import com.amazonaws.services.lambda.runtime.Context;
@@ -24,9 +9,6 @@ import com.demoapigatewaycognito.dto.SignIn;
 import org.json.JSONObject;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 
-/**
- * Created by Roman Ivanov on 7/20/2024.
- */
 public class PostSignInHandler extends CognitoSupport implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
     public PostSignInHandler(CognitoIdentityProviderClient cognitoClient) {
@@ -38,7 +20,7 @@ public class PostSignInHandler extends CognitoSupport implements RequestHandler<
         try {
             SignIn signIn = SignIn.fromJson(requestEvent.getBody());
 
-            String accessToken = cognitoSignIn(signIn.getEmail(), signIn.password())
+            String accessToken = cognitoSignIn(signIn.email(), signIn.password())
                     .authenticationResult()
                     .idToken();
 
@@ -48,7 +30,7 @@ public class PostSignInHandler extends CognitoSupport implements RequestHandler<
         } catch (Exception e) {
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(400)
-                    .withBody(new JSONObject().put("error", e.getMessage()).toString());
+                    .withBody(new JSONObject().put("error", "There was an error in the request.").toString());
         }
     }
 

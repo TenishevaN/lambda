@@ -1,4 +1,3 @@
-
 package com.demoapigatewaycognito.handler;
 
 import com.demoapigatewaycognito.dto.SignUp;
@@ -28,7 +27,7 @@ public abstract class CognitoSupport {
 
     protected AdminInitiateAuthResponse cognitoSignIn(String email, String password) {
         Map<String, String> authParams = Map.of(
-                "USERNAME",email,
+                "USERNAME", email,
                 "PASSWORD", password
         );
 
@@ -48,11 +47,11 @@ public abstract class CognitoSupport {
                         .temporaryPassword(signUp.password())
                         .userAttributes(
                                 AttributeType.builder()
-                                        .name("first_name")
+                                        .name("given_name")
                                         .value(signUp.firstName())
                                         .build(),
                                 AttributeType.builder()
-                                        .name("last_name")
+                                        .name("family_name")
                                         .value(signUp.lastName())
                                         .build(),
                                 AttributeType.builder()

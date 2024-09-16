@@ -27,16 +27,16 @@ import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityPr
 
 import java.util.Map;
 
-import static com.syndicate.deployment.model.environment.ValueTransformer.USER_POOL_NAME_TO_CLIENT_ID;
-import static com.syndicate.deployment.model.environment.ValueTransformer.USER_POOL_NAME_TO_USER_POOL_ID;
+import static com.syndicate.deployment.model.environment.ValueTransformer.USER_booking_userpool_TO_CLIENT_ID;
+import static com.syndicate.deployment.model.environment.ValueTransformer.USER_booking_userpool_TO_USER_POOL_ID;
 
 
-@DependsOn(resourceType = ResourceType.COGNITO_USER_POOL, name = "${pool_name}")
+@DependsOn(resourceType = ResourceType.COGNITO_USER_POOL, name = "${booking_userpool}")
 @LambdaHandler(lambdaName = "api-handler", roleName = "api-handler-role", isPublishVersion = false, runtime = DeploymentRuntime.JAVA17)
 @EnvironmentVariables(value = {
         @EnvironmentVariable(key = "REGION", value = "${region}"),
-        @EnvironmentVariable(key = "COGNITO_ID", value = "${pool_name}", valueTransformer = USER_POOL_NAME_TO_USER_POOL_ID),
-        @EnvironmentVariable(key = "CLIENT_ID", value = "${pool_name}", valueTransformer = USER_POOL_NAME_TO_CLIENT_ID)
+        @EnvironmentVariable(key = "COGNITO_ID", value = "${booking_userpool}", valueTransformer = USER_booking_userpool_TO_USER_POOL_ID),
+        @EnvironmentVariable(key = "CLIENT_ID", value = "${booking_userpool}", valueTransformer = USER_booking_userpool_TO_CLIENT_ID)
 })
 public class ApiHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 

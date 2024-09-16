@@ -10,6 +10,8 @@ import software.amazon.awssdk.services.dynamodb.model.*;
 import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
+import org.json.JSONArray;
+import java.util.LinkedHashMap;
 
 public class GetTableByIdHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 

@@ -87,7 +87,7 @@ public class ApiHandler implements RequestHandler<APIGatewayProxyRequestEvent, A
          );
     }
 
- private Map<String, String> initHeadersForCORS() {
+    private Map<String, String> initHeadersForCORS() {
         return Map.of(
                 "Access-Control-Allow-Headers", "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
                 "Access-Control-Allow-Origin", "*",

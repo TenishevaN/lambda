@@ -1,4 +1,4 @@
-package com.demoapigatewaycognito.dto;
+package com.task10.dto;
 
 import org.json.JSONObject;
 

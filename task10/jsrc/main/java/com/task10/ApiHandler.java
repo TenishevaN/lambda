@@ -1,20 +1,20 @@
-package com.demoapigatewaycognito;
+package com.task10;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
-import com.demoapigatewaycognito.dto.RouteKey;
-import com.demoapigatewaycognito.handler.GetRootHandler;
-import com.demoapigatewaycognito.handler.GetSecuredHandler;
-import com.demoapigatewaycognito.handler.GetTablesdHandler;
-import com.demoapigatewaycognito.handler.GetTableByIdHandler;
-import com.demoapigatewaycognito.handler.PostTablesdHandler;
-import com.demoapigatewaycognito.handler.GetReservationsHandler;
-import com.demoapigatewaycognito.handler.PostReservationsHandler;
-import com.demoapigatewaycognito.handler.RouteNotImplementedHandler;
-import com.demoapigatewaycognito.handler.PostSignInHandler;
-import com.demoapigatewaycognito.handler.PostSignUpHandler;
+import com.task10.dto.RouteKey;
+import com.task10.handler.GetRootHandler;
+import com.task10.handler.GetSecuredHandler;
+import com.task10.handler.GetTablesdHandler;
+import com.task10.handler.GetTableByIdHandler;
+import com.task10.handler.PostTablesdHandler;
+import com.task10.handler.GetReservationsHandler;
+import com.task10.handler.PostReservationsHandler;
+import com.task10.handler.RouteNotImplementedHandler;
+import com.task10.handler.PostSignInHandler;
+import com.task10.handler.PostSignUpHandler;
 import com.syndicate.deployment.annotations.environment.EnvironmentVariable;
 import com.syndicate.deployment.annotations.environment.EnvironmentVariables;
 import com.syndicate.deployment.annotations.lambda.LambdaHandler;
@@ -87,11 +87,7 @@ public class ApiHandler implements RequestHandler<APIGatewayProxyRequestEvent, A
          );
     }
 
-    /**
-     * To allow all origins, all methods, and common headers
-     * <a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-cors.html">Using cross-origin resource sharing (CORS)</a>
-     */
-    private Map<String, String> initHeadersForCORS() {
+ private Map<String, String> initHeadersForCORS() {
         return Map.of(
                 "Access-Control-Allow-Headers", "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
                 "Access-Control-Allow-Origin", "*",

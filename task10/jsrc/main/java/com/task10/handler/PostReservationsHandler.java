@@ -72,14 +72,15 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
 
             String id = UUID.randomUUID().toString();
             Map<String, AttributeValue> item = new HashMap<>();
-            item.put("id", AttributeValue.builder().s(id).build());
+            item.put("id", AttributeValue.builder().s(String.valueOf(id)).build());
             item.put("tableNumber", AttributeValue.builder().n(String.valueOf(tableNumber)).build());
             item.put("clientName", AttributeValue.builder().s(clientName).build());
             item.put("phoneNumber", AttributeValue.builder().s(phoneNumber).build());
-            item.put("date", AttributeValue.builder().s(dateString).build());
-            item.put("slotTimeStart", AttributeValue.builder().s(slotTimeStartString).build());
-            item.put("slotTimeEnd", AttributeValue.builder().s(slotTimeEndString).build());
+            item.put("date", AttributeValue.builder().s(String.valueOf(dateString)).build());
+            item.put("slotTimeStart", AttributeValue.builder().s(String.valueOf(slotTimeStartString)).build());
+            item.put("slotTimeEnd", AttributeValue.builder().s(String.valueOf(slotTimeEndString)).build());
 
+            DynamoDbClient dynamoDB = DynamoDbClient.create();
             PutItemRequest putItemRequest = PutItemRequest.builder()
                     .tableName("cmtr-85e8c71a-Reservations")
                     .item(item)
@@ -95,7 +96,7 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
         } catch (Exception e) {
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(400)
-                    .withBody("{\"error\": \"" + e.getMessage() + "\"}");
+                    .withBody("There was an error in the request. Possible reasons include invalid input, table not found, or conflicting reservations.".toString());
         }
     }
 

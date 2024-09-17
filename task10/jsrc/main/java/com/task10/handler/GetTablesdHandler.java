@@ -45,7 +45,7 @@ public class GetTablesdHandler implements RequestHandler<APIGatewayProxyRequestE
             for (Map<String, AttributeValue> item : result.items()) {
 
                 Map<String, Object> orderedMap = new LinkedHashMap<>();
-                orderedMap.put("id", Integer.parseInt(item.get("id").n());
+                orderedMap.put("id", Integer.parseInt(item.get("id").n()));
                 orderedMap.put("number", Integer.parseInt(item.get("number").n()));
                 orderedMap.put("places", Integer.parseInt(item.get("places").n()));
                 orderedMap.put("isVip", item.get("isVip").bool());

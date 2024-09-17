@@ -68,7 +68,7 @@ public class PostTablesdHandler  extends CognitoSupport  implements RequestHandl
         } catch (Exception e) {
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(400)
-                    .withBody("There was an error in the request.".toString());
+                    .withBody(e.getMessage().toString());
         }
     }
 }

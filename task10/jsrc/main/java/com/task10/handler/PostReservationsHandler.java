@@ -79,7 +79,7 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
         } catch (Exception e) {
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(400)
-                    .withBody("There was an error in the request. Possible reasons include invalid input, table not found, or conflicting reservations.".toString());
+                    .withBody(e.getMessage().toString());
         }
     }
 }

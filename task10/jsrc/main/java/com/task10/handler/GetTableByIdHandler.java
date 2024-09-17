@@ -21,9 +21,13 @@ public class GetTableByIdHandler implements RequestHandler<APIGatewayProxyReques
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent requestEvent, Context context) {
-        String tableId = requestEvent.getPathParameters().get("tableId");
 
         try {
+
+            String tableIdStr = requestEvent.getPathParameters().get("tableId");
+            int tableId = Integer.parseInt(tableIdStr);
+
+
             ScanRequest scanRequest = ScanRequest.builder()
                     .tableName("cmtr-85e8c71a-Tables")
                     .build();
@@ -31,6 +35,10 @@ public class GetTableByIdHandler implements RequestHandler<APIGatewayProxyReques
             ScanResponse result = dynamoDB.scan(scanRequest);
             JSONArray tablesArray = new JSONArray();
             for (Map<String, AttributeValue> item : result.items()) {
+                var id = Integer.parseInt(item.get("id").n());
+                if(id != tableId){
+                    continue;
+                }
                 Map<String, Object> orderedMap = new LinkedHashMap<>();
                 orderedMap.put("id", Integer.parseInt(item.get("id").n()));
                 orderedMap.put("number", Integer.parseInt(item.get("number").n()));
@@ -52,7 +60,7 @@ public class GetTableByIdHandler implements RequestHandler<APIGatewayProxyReques
         } catch (Exception e) {
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(400)
-                    .withBody("There was an error in the request.".toString());
+                    .withBody(e.getMessage().toString());
 
         }
     }

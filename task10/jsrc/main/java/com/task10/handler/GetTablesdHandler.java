@@ -35,8 +35,6 @@ public class GetTablesdHandler implements RequestHandler<APIGatewayProxyRequestE
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent requestEvent, Context context) {
         try {
 
-            String tableIdStr = requestEvent.getPathParameters().get("tableId");
-            int tableId = Integer.parseInt(tableIdStr);
 
             ScanRequest scanRequest = ScanRequest.builder()
                     .tableName("cmtr-85e8c71a-Tables")
@@ -45,12 +43,9 @@ public class GetTablesdHandler implements RequestHandler<APIGatewayProxyRequestE
             ScanResponse result = dynamoDB.scan(scanRequest);
             JSONArray tablesArray = new JSONArray();
             for (Map<String, AttributeValue> item : result.items()) {
-                var id = Integer.parseInt(item.get("id").n());
-                if(id != tableId){
-                   continue;
-                }
+
                 Map<String, Object> orderedMap = new LinkedHashMap<>();
-                orderedMap.put("id", id);
+                orderedMap.put("id", Integer.parseInt(item.get("id").n());
                 orderedMap.put("number", Integer.parseInt(item.get("number").n()));
                 orderedMap.put("places", Integer.parseInt(item.get("places").n()));
                 orderedMap.put("isVip", item.get("isVip").bool());
@@ -70,7 +65,7 @@ public class GetTablesdHandler implements RequestHandler<APIGatewayProxyRequestE
         } catch (Exception e) {
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(400)
-                    .withBody("There was an error in the request  that's it.".toString());
+                    .withBody(e.getMessage().toString());
 
         }
     }

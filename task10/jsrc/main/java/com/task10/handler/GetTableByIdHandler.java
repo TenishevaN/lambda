@@ -34,8 +34,12 @@ public class GetTableByIdHandler implements RequestHandler<APIGatewayProxyReques
             ScanResponse result = dynamoDB.scan(scanRequest);
             JSONArray tablesArray = new JSONArray();
             for (Map<String, AttributeValue> item : result.items()) {
+                String id = item.get("id").n();
+                if(!tableId.equals(id)){
+                   continue;
+                }
                 Map<String, Object> orderedMap = new LinkedHashMap<>();
-                orderedMap.put("id", Integer.parseInt(item.get("id").n()));
+                orderedMap.put("id", tableId);
                 orderedMap.put("number", Integer.parseInt(item.get("number").n()));
                 orderedMap.put("places", Integer.parseInt(item.get("places").n()));
                 orderedMap.put("isVip", item.get("isVip").bool());

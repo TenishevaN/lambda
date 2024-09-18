@@ -27,6 +27,9 @@ import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityPr
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static com.syndicate.deployment.model.environment.ValueTransformer.USER_POOL_NAME_TO_CLIENT_ID;
 import static com.syndicate.deployment.model.environment.ValueTransformer.USER_POOL_NAME_TO_USER_POOL_ID;
 
@@ -49,6 +52,8 @@ public class ApiHandler implements RequestHandler<APIGatewayProxyRequestEvent, A
 	private final Map<String, String> headersForCORS;
 	private final RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> routeNotImplementedHandler;
 
+	private static final Logger logger = LoggerFactory.getLogger(ApiHandler.class);
+
 	public ApiHandler() {
 		this.cognitoClient = initCognitoClient();
 		this.handlersByRouteKey = initHandlers();
@@ -68,6 +73,12 @@ public class ApiHandler implements RequestHandler<APIGatewayProxyRequestEvent, A
 	}
 
 	private RouteKey getRouteKey(APIGatewayProxyRequestEvent requestEvent) {
+		String path = requestEvent.getPath();
+		logger.info("path: " + path);
+		if (path.matches("/tables/\\d+")) {
+			logger.info("path matches \\d: " + path);
+			return new RouteKey(requestEvent.getHttpMethod(), "/tables/{tableId}");
+		}
 		return new RouteKey(requestEvent.getHttpMethod(), requestEvent.getPath());
 	}
 
@@ -79,15 +90,16 @@ public class ApiHandler implements RequestHandler<APIGatewayProxyRequestEvent, A
 	}
 
 	private Map<RouteKey, RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent>> initHandlers() {
+
 		return Map.of(
 				new RouteKey("GET", "/"), new GetRootHandler(),
 				new RouteKey("POST", "/signup"), new PostSignUpHandler(cognitoClient),
 				new RouteKey("POST", "/signin"), new PostSignInHandler(cognitoClient),
 				new RouteKey("POST", "/tables"), new PostTablesdHandler(cognitoClient),
+				new RouteKey("GET", "/tables/{tableId}"), new GetTableByIdHandler(),
 				new RouteKey("GET", "/tables"), new GetTablesdHandler(),
-				new RouteKey("POST", "/reservations"), new PostReservationsHandler(cognitoClient),
-				new RouteKey("GET", "/reservations"), new GetReservationsHandler(),
-				new RouteKey("GET", "/tables/{tableId}"), new GetTableByIdHandler()
+			    new RouteKey("POST", "/reservations"), new PostReservationsHandler(cognitoClient),
+				new RouteKey("GET", "/reservations"), new GetReservationsHandler()
 		);
 	}
 

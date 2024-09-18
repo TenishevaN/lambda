@@ -23,9 +23,12 @@ import java.io.StringWriter;
 import java.io.PrintWriter;
 import java.util.Map;
 import java.util.LinkedHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class GetTablesdHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
+    private static final Logger logger = LoggerFactory.getLogger(GetTablesdHandler.class);
 
     private static final DynamoDbClient dynamoDB = DynamoDbClient.builder()
             .region(Region.EU_CENTRAL_1)
@@ -33,6 +36,16 @@ public class GetTablesdHandler implements RequestHandler<APIGatewayProxyRequestE
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent requestEvent, Context context) {
+
+
+        logger.info("Received request with HTTP method: {}", requestEvent.getHttpMethod());
+        logger.info("Request path: {}", requestEvent.getPath());
+        logger.info("Request body: {}", requestEvent.getBody());
+
+
+        logger.info("Headers: {}", requestEvent.getHeaders());
+        logger.info("Query parameters: {}", requestEvent.getQueryStringParameters());
+
         try {
 
 

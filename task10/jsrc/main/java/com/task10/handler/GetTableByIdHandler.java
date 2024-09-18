@@ -4,6 +4,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
+import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
@@ -21,13 +22,11 @@ public class GetTableByIdHandler implements RequestHandler<APIGatewayProxyReques
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent requestEvent, Context context) {
+        LambdaLogger logger = context.getLogger();
+        String tableId = requestEvent.getPathParameters().get("tableId");
+        logger.log("Received request for tableId: " + tableId);
 
         try {
-
-            String tableIdStr = requestEvent.getPathParameters().get("tableId");
-            int tableId = Integer.parseInt(tableIdStr);
-
-
             ScanRequest scanRequest = ScanRequest.builder()
                     .tableName("cmtr-85e8c71a-Tables")
                     .build();
@@ -35,10 +34,6 @@ public class GetTableByIdHandler implements RequestHandler<APIGatewayProxyReques
             ScanResponse result = dynamoDB.scan(scanRequest);
             JSONArray tablesArray = new JSONArray();
             for (Map<String, AttributeValue> item : result.items()) {
-                var id = Integer.parseInt(item.get("id").n());
-                if(id != tableId){
-                    continue;
-                }
                 Map<String, Object> orderedMap = new LinkedHashMap<>();
                 orderedMap.put("id", Integer.parseInt(item.get("id").n()));
                 orderedMap.put("number", Integer.parseInt(item.get("number").n()));
@@ -58,10 +53,10 @@ public class GetTableByIdHandler implements RequestHandler<APIGatewayProxyReques
                     .withStatusCode(200)
                     .withBody(responseBody.toString());
         } catch (Exception e) {
+            logger.log("Error processing request: " + e.getMessage());
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(400)
-                    .withBody(e.getMessage().toString());
-
+                    .withBody("{\"error\": \"There was an error in the request.\"}");
         }
     }
 }

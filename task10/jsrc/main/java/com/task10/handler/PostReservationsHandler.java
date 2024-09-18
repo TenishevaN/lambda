@@ -50,8 +50,17 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent requestEvent, Context context) {
 
-
         try {
+
+            DynamoDbClient dynamoDB = DynamoDbClient.create();
+            if (!doesTableExist(dynamoDB, "cmtr-85e8c71a-Reservations-test")) {
+                return new APIGatewayProxyResponseEvent()
+                        .withStatusCode(400)
+                        .withBody("DynamoDB table does not exist.");
+            }
+
+
+
             JSONObject requestBody = new JSONObject(requestEvent.getBody());
 
             String clientName = requestBody.getString("clientName");
@@ -63,7 +72,11 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
 
             String id = UUID.randomUUID().toString();
 
-
+            if (hasOverlappingReservation(dynamoDB, tableNumber, dateString)) {
+                return new APIGatewayProxyResponseEvent()
+                        .withStatusCode(400)
+                        .withBody("here is an overlapping reservation.");
+            }
 
             logger.info("passed validation ");
 
@@ -77,7 +90,7 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
             item.put("slotTimeStart", AttributeValue.builder().s(String.valueOf(slotTimeStartString)).build());
             item.put("slotTimeEnd", AttributeValue.builder().s(String.valueOf(slotTimeEndString)).build());
 
-            DynamoDbClient dynamoDB = DynamoDbClient.create();
+
             PutItemRequest putItemRequest = PutItemRequest.builder()
                     .tableName("cmtr-85e8c71a-Reservations-test")
                     .item(item)
@@ -97,6 +110,39 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
                     .withStatusCode(400)
                     .withBody(e.getMessage().toString());
         }
+    }
+
+    private boolean doesTableExist(DynamoDbClient dynamoDB, String tableName) {
+        try {
+            dynamoDB.describeTable(DescribeTableRequest.builder().tableName(tableName).build());
+            return true;
+        } catch (ResourceNotFoundException e) {
+            return false;
+        }
+    }
+
+    private boolean hasOverlappingReservation(DynamoDbClient dynamoDB, int tableNumber, String date) {
+        String tableName = "cmtr-85e8c71a-Reservations-test";
+
+        // Construct the condition to find reservations for the same table on the same date that overlap in time
+        String keyConditionExpression = "tableId = :tableId and date = :date";
+        String filterExpression = "slotTimeStart < :endTime and slotTimeEnd > :startTime";
+
+        Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
+        expressionAttributeValues.put(":tableNumber", AttributeValue.builder().n(String.valueOf(tableNumber)).build());
+        expressionAttributeValues.put(":date", AttributeValue.builder().s(date).build());
+
+        QueryRequest queryRequest = QueryRequest.builder()
+                .tableName(tableName)
+                .keyConditionExpression(keyConditionExpression)
+                .filterExpression(filterExpression)
+                .expressionAttributeValues(expressionAttributeValues)
+                .build();
+
+        QueryResponse queryResponse = dynamoDB.query(queryRequest);
+
+        // If the query returns any items, there is an overlapping reservation
+        return !queryResponse.items().isEmpty();
     }
 
 }

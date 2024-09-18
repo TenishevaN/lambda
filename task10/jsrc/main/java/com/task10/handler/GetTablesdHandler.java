@@ -26,6 +26,10 @@ import java.util.LinkedHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+
 
 public class GetTablesdHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
     private static final Logger logger = LoggerFactory.getLogger(GetTablesdHandler.class);
@@ -47,8 +51,6 @@ public class GetTablesdHandler implements RequestHandler<APIGatewayProxyRequestE
         logger.info("Query parameters: {}", requestEvent.getQueryStringParameters());
 
         try {
-
-
             ScanRequest scanRequest = ScanRequest.builder()
                     .tableName("cmtr-85e8c71a-Tables")
                     .build();

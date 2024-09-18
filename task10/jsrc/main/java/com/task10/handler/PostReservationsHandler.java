@@ -70,19 +70,19 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
 
             String id = UUID.randomUUID().toString();
 
-            // Check if the table exists
-            if (doesTableExist(id)) {
-                return new APIGatewayProxyResponseEvent()
-                        .withStatusCode(400)
-                        .withBody("{\"error\": \"Table does not exist.\"}");
-            }
-            logger.info("doesTableExist passed ");
-            // Check for overlapping reservations
-            if (hasOverlappingReservations(String.valueOf(tableNumber), dateString, slotTimeStartString, slotTimeEndString)) {
-                return new APIGatewayProxyResponseEvent()
-                        .withStatusCode(400)
-                        .withBody("{\"error\": \"Reservation overlaps with an existing reservation.\"}");
-            }
+//            // Check if the table exists
+//            if (doesTableExist(id)) {
+//                return new APIGatewayProxyResponseEvent()
+//                        .withStatusCode(400)
+//                        .withBody("{\"error\": \"Table does not exist.\"}");
+//            }
+//            logger.info("doesTableExist passed ");
+//            // Check for overlapping reservations
+//            if (hasOverlappingReservations(String.valueOf(tableNumber), dateString, slotTimeStartString, slotTimeEndString)) {
+//                return new APIGatewayProxyResponseEvent()
+//                        .withStatusCode(400)
+//                        .withBody("{\"error\": \"Reservation overlaps with an existing reservation.\"}");
+//            }
 
             logger.info("passed validation ");
 
@@ -118,33 +118,33 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
         }
     }
 
-    private boolean doesTableExist(String id) {
-        logger.info("doesTableExist ");
-        GetItemRequest getItemRequest = GetItemRequest.builder()
-                .tableName("cmtr-85e8c71a-Reservations-test")
-                .key(Map.of("id", AttributeValue.builder().s(id).build()))
-                .build();
+//    private boolean doesTableExist(String id) {
+//        logger.info("doesTableExist ");
+//        GetItemRequest getItemRequest = GetItemRequest.builder()
+//                .tableName("cmtr-85e8c71a-Reservations-test")
+//                .key(Map.of("id", AttributeValue.builder().s(id).build()))
+//                .build();
+//
+//        GetItemResponse getItemResponse = dynamoDB.getItem(getItemRequest);
+//        return getItemResponse.hasItem();
+//    }
 
-        GetItemResponse getItemResponse = dynamoDB.getItem(getItemRequest);
-        return getItemResponse.hasItem();
-    }
-
-    private boolean hasOverlappingReservations(String tableNumber, String date, String slotTimeStart, String slotTimeEnd) {
-        Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
-        expressionAttributeValues.put(":tableNumber", AttributeValue.builder().n(tableNumber).build());
-        expressionAttributeValues.put(":date", AttributeValue.builder().s(date).build());
-        expressionAttributeValues.put(":slotTimeStart", AttributeValue.builder().s(slotTimeStart).build());
-        expressionAttributeValues.put(":slotTimeEnd", AttributeValue.builder().s(slotTimeEnd).build());
-
-        QueryRequest queryRequest = QueryRequest.builder()
-                .tableName("cmtr-85e8c71a-Reservations-test")
-                .keyConditionExpression("tableNumber = :tableNumber AND date = :date")
-                .filterExpression("slotTimeStart < :slotTimeEnd AND slotTimeEnd > :slotTimeStart")
-                .expressionAttributeValues(expressionAttributeValues)
-                .build();
-
-        QueryResponse queryResponse = dynamoDB.query(queryRequest);
-        return !queryResponse.items().isEmpty();
-    }
+//    private boolean hasOverlappingReservations(String tableNumber, String date, String slotTimeStart, String slotTimeEnd) {
+//        Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
+//        expressionAttributeValues.put(":tableNumber", AttributeValue.builder().n(tableNumber).build());
+//        expressionAttributeValues.put(":date", AttributeValue.builder().s(date).build());
+//        expressionAttributeValues.put(":slotTimeStart", AttributeValue.builder().s(slotTimeStart).build());
+//        expressionAttributeValues.put(":slotTimeEnd", AttributeValue.builder().s(slotTimeEnd).build());
+//
+//        QueryRequest queryRequest = QueryRequest.builder()
+//                .tableName("cmtr-85e8c71a-Reservations-test")
+//                .keyConditionExpression("tableNumber = :tableNumber AND date = :date")
+//                .filterExpression("slotTimeStart < :slotTimeEnd AND slotTimeEnd > :slotTimeStart")
+//                .expressionAttributeValues(expressionAttributeValues)
+//                .build();
+//
+//        QueryResponse queryResponse = dynamoDB.query(queryRequest);
+//        return !queryResponse.items().isEmpty();
+//    }
 
 }

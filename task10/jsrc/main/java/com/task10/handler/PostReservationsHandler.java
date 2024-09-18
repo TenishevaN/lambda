@@ -114,7 +114,9 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
 
     private boolean doesTableExist(DynamoDbClient dynamoDB, String tableName) {
         try {
-            dynamoDB.describeTable(DescribeTableRequest.builder().tableName(tableName).build());
+            dynamoDB.describeTable(DescribeTableRequest.builder()
+                    .tableName(tableName)
+                    .build());
             return true;
         } catch (ResourceNotFoundException e) {
             return false;

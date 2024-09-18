@@ -63,7 +63,7 @@ public class GetTableByIdHandler implements RequestHandler<APIGatewayProxyReques
             Gson gson = new Gson();
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(200)
-                    .withBody(gson.toJson(responseBody));
+                    .withBody(gson.toJson(table));
         } catch (Exception e) {
             logger.log("Error processing request: " + e.getMessage());
             return new APIGatewayProxyResponseEvent()

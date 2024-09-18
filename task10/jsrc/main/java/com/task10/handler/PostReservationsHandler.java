@@ -118,7 +118,7 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
 
     private boolean doesTableExist(int tableNumber) {
         GetItemRequest getItemRequest = GetItemRequest.builder()
-                .tableName("cmtr-85e8c71a-Tables")
+                .tableName("cmtr-85e8c71a-Reservations-test")
                 .key(Map.of("tableNumber", AttributeValue.builder().n(String.valueOf(tableNumber)).build()))
                 .build();
 
@@ -134,7 +134,7 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
         expressionAttributeValues.put(":slotTimeEnd", AttributeValue.builder().s(slotTimeEnd).build());
 
         QueryRequest queryRequest = QueryRequest.builder()
-                .tableName("cmtr-85e8c71a-Reservations")
+                .tableName("cmtr-85e8c71a-Reservations-test")
                 .keyConditionExpression("tableNumber = :tableNumber AND date = :date")
                 .filterExpression("slotTimeStart < :slotTimeEnd AND slotTimeEnd > :slotTimeStart")
                 .expressionAttributeValues(expressionAttributeValues)

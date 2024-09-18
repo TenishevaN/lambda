@@ -66,7 +66,7 @@ public class PostTablesdHandler  extends CognitoSupport  implements RequestHandl
             }
 
             PutItemRequest putItemRequest = PutItemRequest.builder()
-                    .tableName("cmtr-85e8c71a-Tables")
+                    .tableName("cmtr-85e8c71a-Tables-test")
                     .item(item)
                     .build();
             PutItemResponse putItemResponse = dynamoDB.putItem(putItemRequest);

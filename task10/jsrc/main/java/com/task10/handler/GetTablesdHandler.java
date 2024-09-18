@@ -53,7 +53,7 @@ public class GetTablesdHandler implements RequestHandler<APIGatewayProxyRequestE
         try {
             DynamoDbClient dynamoDB = DynamoDbClient.create();
             ScanRequest scanRequest = ScanRequest.builder()
-                    .tableName("cmtr-85e8c71a-Tables")
+                    .tableName("cmtr-85e8c71a-Tables-test")
                     .build();
 
             ScanResponse result = dynamoDB.scan(scanRequest);

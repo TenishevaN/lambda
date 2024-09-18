@@ -96,7 +96,7 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
 
             DynamoDbClient dynamoDB = DynamoDbClient.create();
             PutItemRequest putItemRequest = PutItemRequest.builder()
-                    .tableName("cmtr-85e8c71a-Reservations")
+                    .tableName("cmtr-85e8c71a-Reservations-test")
                     .item(item)
                     .build();
             logger.info("defined data: " + item);

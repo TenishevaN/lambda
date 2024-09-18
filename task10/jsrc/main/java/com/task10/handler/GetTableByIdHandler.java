@@ -14,6 +14,14 @@ import java.util.Map;
 import org.json.JSONArray;
 import java.util.LinkedHashMap;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.Gson;
+
+
 public class GetTableByIdHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
     private static final DynamoDbClient dynamoDB = DynamoDbClient.builder()
@@ -32,30 +40,30 @@ public class GetTableByIdHandler implements RequestHandler<APIGatewayProxyReques
                     .build();
 
             ScanResponse result = dynamoDB.scan(scanRequest);
-            JSONArray tablesArray = new JSONArray();
+            JsonArray tablesArray = new JsonArray();
             for (Map<String, AttributeValue> item : result.items()) {
                 String id = item.get("id").n();
-                if(!tableId.equals(id)){
-                   continue;
+                if (!tableId.equals(id)) {
+                    continue;
                 }
-                Map<String, Object> orderedMap = new LinkedHashMap<>();
-                orderedMap.put("id", tableId);
-                orderedMap.put("number", Integer.parseInt(item.get("number").n()));
-                orderedMap.put("places", Integer.parseInt(item.get("places").n()));
-                orderedMap.put("isVip", item.get("isVip").bool());
+                JsonObject table = new JsonObject();
+                table.addProperty("id", tableId);
+                table.addProperty("number", Integer.parseInt(item.get("number").n()));
+                table.addProperty("places", Integer.parseInt(item.get("places").n()));
+                table.addProperty("isVip", item.get("isVip").bool());
                 if (item.containsKey("minOrder")) {
-                    orderedMap.put("minOrder", Integer.parseInt(item.get("minOrder").n()));
+                    table.addProperty("minOrder", Integer.parseInt(item.get("minOrder").n()));
                 }
-                JSONObject table = new JSONObject(orderedMap);
-                tablesArray.put(table);
+                tablesArray.add(table);
             }
 
-            JSONObject responseBody = new JSONObject();
-            responseBody.put("tables", tablesArray);
+            JsonObject responseBody = new JsonObject();
+            responseBody.add("tables", tablesArray);
 
+            Gson gson = new Gson();
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(200)
-                    .withBody(responseBody.toString());
+                    .withBody(gson.toJson(responseBody));
         } catch (Exception e) {
             logger.log("Error processing request: " + e.getMessage());
             return new APIGatewayProxyResponseEvent()

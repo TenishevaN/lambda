@@ -4,6 +4,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
+import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
@@ -13,6 +14,14 @@ import java.util.Map;
 import org.json.JSONArray;
 import java.util.LinkedHashMap;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.Gson;
+
+
 public class GetTableByIdHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
     private static final DynamoDbClient dynamoDB = DynamoDbClient.builder()
@@ -21,39 +30,45 @@ public class GetTableByIdHandler implements RequestHandler<APIGatewayProxyReques
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent requestEvent, Context context) {
+        LambdaLogger logger = context.getLogger();
         String tableId = requestEvent.getPathParameters().get("tableId");
+        logger.log("Received request for tableId: " + tableId);
 
         try {
             ScanRequest scanRequest = ScanRequest.builder()
-                    .tableName("cmtr-85e8c71a-Tables")
+                    .tableName("cmtr-85e8c71a-Tables-test")
                     .build();
 
             ScanResponse result = dynamoDB.scan(scanRequest);
-            JSONArray tablesArray = new JSONArray();
+            JsonArray tablesArray = new JsonArray();
             for (Map<String, AttributeValue> item : result.items()) {
-                Map<String, Object> orderedMap = new LinkedHashMap<>();
-                orderedMap.put("id", Integer.parseInt(item.get("id").n()));
-                orderedMap.put("number", Integer.parseInt(item.get("number").n()));
-                orderedMap.put("places", Integer.parseInt(item.get("places").n()));
-                orderedMap.put("isVip", item.get("isVip").bool());
-                if (item.containsKey("minOrder")) {
-                    orderedMap.put("minOrder", Integer.parseInt(item.get("minOrder").n()));
+                String id = item.get("id").n();
+                if (!tableId.equals(id)) {
+                    continue;
                 }
-                JSONObject table = new JSONObject(orderedMap);
-                tablesArray.put(table);
+                JsonObject table = new JsonObject();
+                table.addProperty("id", tableId);
+                table.addProperty("number", Integer.parseInt(item.get("number").n()));
+                table.addProperty("places", Integer.parseInt(item.get("places").n()));
+                table.addProperty("isVip", item.get("isVip").bool());
+                if (item.containsKey("minOrder")) {
+                    table.addProperty("minOrder", Integer.parseInt(item.get("minOrder").n()));
+                }
+                tablesArray.add(table);
             }
 
-            JSONObject responseBody = new JSONObject();
-            responseBody.put("tables", tablesArray);
+            JsonObject responseBody = new JsonObject();
+            responseBody.add("tables", tablesArray);
 
+            Gson gson = new Gson();
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(200)
-                    .withBody(responseBody.toString());
+                    .withBody(gson.toJson(table));
         } catch (Exception e) {
+            logger.log("Error processing request: " + e.getMessage());
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(400)
-                    .withBody("There was an error in the request.".toString());
-
+                    .withBody("{\"error\": \"There was an error in the request.\"}");
         }
     }
 }

@@ -23,9 +23,16 @@ import java.io.StringWriter;
 import java.io.PrintWriter;
 import java.util.Map;
 import java.util.LinkedHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 
 public class GetTablesdHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
+    private static final Logger logger = LoggerFactory.getLogger(GetTablesdHandler.class);
 
     private static final DynamoDbClient dynamoDB = DynamoDbClient.builder()
             .region(Region.EU_CENTRAL_1)
@@ -33,43 +40,52 @@ public class GetTablesdHandler implements RequestHandler<APIGatewayProxyRequestE
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent requestEvent, Context context) {
-        try {
-            String tableIdStr = requestEvent.getPathParameters().get("tableId");
-            int tableId = Integer.parseInt(tableIdStr);
 
+
+        logger.info("Received request with HTTP method: {}", requestEvent.getHttpMethod());
+        logger.info("Request path: {}", requestEvent.getPath());
+        logger.info("Request body: {}", requestEvent.getBody());
+
+
+        logger.info("Headers: {}", requestEvent.getHeaders());
+        logger.info("Query parameters: {}", requestEvent.getQueryStringParameters());
+
+        try {
+            DynamoDbClient dynamoDB = DynamoDbClient.create();
             ScanRequest scanRequest = ScanRequest.builder()
-                    .tableName("cmtr-85e8c71a-Tables")
+                    .tableName("cmtr-85e8c71a-Tables-test")
                     .build();
 
             ScanResponse result = dynamoDB.scan(scanRequest);
-            JSONArray tablesArray = new JSONArray();
+            ObjectMapper mapper = new ObjectMapper();
+
+            ArrayNode tablesArray = mapper.createArrayNode();
+
             for (Map<String, AttributeValue> item : result.items()) {
-                var id = Integer.parseInt(item.get("id").n());
-                if(id != tableId){
-                   continue;
-                }
-                Map<String, Object> orderedMap = new LinkedHashMap<>();
-                orderedMap.put("id", id);
-                orderedMap.put("number", Integer.parseInt(item.get("number").n()));
-                orderedMap.put("places", Integer.parseInt(item.get("places").n()));
-                orderedMap.put("isVip", item.get("isVip").bool());
+                ObjectNode table = mapper.createObjectNode();
+                table.put("id", Integer.parseInt(item.get("id").n()));
+                table.put("number", Integer.parseInt(item.get("number").n()));
+                table.put("places", Integer.parseInt(item.get("places").n()));
+                table.put("isVip", item.get("isVip").bool());
+
                 if (item.containsKey("minOrder")) {
-                    orderedMap.put("minOrder", Integer.parseInt(item.get("minOrder").n()));
+                    table.put("minOrder", Integer.parseInt(item.get("minOrder").n()));
                 }
-                JSONObject table = new JSONObject(orderedMap);
-                tablesArray.put(table);
+
+                tablesArray.add(table);
             }
 
-            JSONObject responseBody = new JSONObject();
-            responseBody.put("tables", tablesArray);
+            ObjectNode responseBody = mapper.createObjectNode();
+            responseBody.set("tables", tablesArray);
+            String jsonOutput = mapper.writeValueAsString(responseBody);
 
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(200)
-                    .withBody(responseBody.toString());
+                    .withBody(jsonOutput);
         } catch (Exception e) {
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(400)
-                    .withBody("There was an error in the request  that's it.".toString());
+                    .withBody(e.getMessage().toString());
 
         }
     }

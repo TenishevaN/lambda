@@ -34,7 +34,6 @@ public class GetTablesdHandler implements RequestHandler<APIGatewayProxyRequestE
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent requestEvent, Context context) {
         try {
-
             String tableIdStr = requestEvent.getPathParameters().get("tableId");
             int tableId = Integer.parseInt(tableIdStr);
 

@@ -16,6 +16,7 @@
             "cognito-idp:GetIdentityProviderByIdentifier",
             "cognito-idp:ListUserPools",
             "cognito-idp:ListUserPoolClients",
+            "cognito-idp:ListUserPoolClients",
             "cognito-idp:AdminRespondToAuthChallenge",
 
             "ssm:PutParameter",

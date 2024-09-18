@@ -53,11 +53,11 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
         try {
 
             DynamoDbClient dynamoDB = DynamoDbClient.create();
-            if (!doesTableExist(dynamoDB, "cmtr-85e8c71a-Reservations-test")) {
-                return new APIGatewayProxyResponseEvent()
-                        .withStatusCode(400)
-                        .withBody("DynamoDB table does not exist.");
-            }
+//            if (!doesTableExist(dynamoDB, "cmtr-85e8c71a-Reservations-test")) {
+//                return new APIGatewayProxyResponseEvent()
+//                        .withStatusCode(400)
+//                        .withBody("DynamoDB table does not exist.");
+//            }
 
 
 

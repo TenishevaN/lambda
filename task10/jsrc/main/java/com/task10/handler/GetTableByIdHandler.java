@@ -58,12 +58,12 @@ public class GetTableByIdHandler implements RequestHandler<APIGatewayProxyReques
             }
 
             JsonObject responseBody = new JsonObject();
-            responseBody.add("tables", tablesArray);
+            responseBody.add("", tablesArray);
 
             Gson gson = new Gson();
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(200)
-                    .withBody(gson.toJson(table));
+                    .withBody(gson.toJson(responseBody));
         } catch (Exception e) {
             logger.log("Error processing request: " + e.getMessage());
             return new APIGatewayProxyResponseEvent()

@@ -51,32 +51,37 @@ public class GetTablesdHandler implements RequestHandler<APIGatewayProxyRequestE
         logger.info("Query parameters: {}", requestEvent.getQueryStringParameters());
 
         try {
+            DynamoDbClient dynamoDB = DynamoDbClient.create();
             ScanRequest scanRequest = ScanRequest.builder()
                     .tableName("cmtr-85e8c71a-Tables")
                     .build();
 
             ScanResponse result = dynamoDB.scan(scanRequest);
-            JSONArray tablesArray = new JSONArray();
-            for (Map<String, AttributeValue> item : result.items()) {
+            ObjectMapper mapper = new ObjectMapper();
 
-                Map<String, Object> orderedMap = new LinkedHashMap<>();
-                orderedMap.put("id", Integer.parseInt(item.get("id").n()));
-                orderedMap.put("number", Integer.parseInt(item.get("number").n()));
-                orderedMap.put("places", Integer.parseInt(item.get("places").n()));
-                orderedMap.put("isVip", item.get("isVip").bool());
+            ArrayNode tablesArray = mapper.createArrayNode();
+
+            for (Map<String, AttributeValue> item : result.items()) {
+                ObjectNode table = mapper.createObjectNode();
+                table.put("id", Integer.parseInt(item.get("id").n()));
+                table.put("number", Integer.parseInt(item.get("number").n()));
+                table.put("places", Integer.parseInt(item.get("places").n()));
+                table.put("isVip", item.get("isVip").bool());
+
                 if (item.containsKey("minOrder")) {
-                    orderedMap.put("minOrder", Integer.parseInt(item.get("minOrder").n()));
+                    table.put("minOrder", Integer.parseInt(item.get("minOrder").n()));
                 }
-                JSONObject table = new JSONObject(orderedMap);
-                tablesArray.put(table);
+
+                tablesArray.add(table);
             }
 
-            JSONObject responseBody = new JSONObject();
-            responseBody.put("tables", tablesArray);
+            ObjectNode responseBody = mapper.createObjectNode();
+            responseBody.set("tables", tablesArray);
+            String jsonOutput = mapper.writeValueAsString(responseBody);
 
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(200)
-                    .withBody(responseBody.toString());
+                    .withBody(jsonOutput);
         } catch (Exception e) {
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(400)

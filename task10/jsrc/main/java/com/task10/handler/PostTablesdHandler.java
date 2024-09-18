@@ -21,10 +21,13 @@ import software.amazon.awssdk.services.dynamodb.model.*;
 import org.json.JSONArray;
 import java.io.StringWriter;
 import java.io.PrintWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 
 public class PostTablesdHandler  extends CognitoSupport  implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
+    private static final Logger logger = LoggerFactory.getLogger(GetTablesdHandler.class);
 
     private static final DynamoDbClient dynamoDB = DynamoDbClient.builder()
             .region(Region.EU_CENTRAL_1)
@@ -36,6 +39,15 @@ public class PostTablesdHandler  extends CognitoSupport  implements RequestHandl
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent requestEvent, Context context)  {
+
+        logger.info("Received request with HTTP method: {}", requestEvent.getHttpMethod());
+        logger.info("Request path: {}", requestEvent.getPath());
+        logger.info("Request body: {}", requestEvent.getBody());
+
+
+        logger.info("Headers: {}", requestEvent.getHeaders());
+        logger.info("Query parameters: {}", requestEvent.getQueryStringParameters());
+
         try {
             JSONObject requestBody = new JSONObject(requestEvent.getBody());
             int id = requestBody.getInt("id");

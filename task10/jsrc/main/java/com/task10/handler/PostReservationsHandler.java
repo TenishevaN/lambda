@@ -30,11 +30,14 @@ import java.util.UUID;
 import software.amazon.awssdk.services.dynamodb.model.Condition;
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 
 public class PostReservationsHandler  extends CognitoSupport  implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
+    private static final Logger logger = LoggerFactory.getLogger(GetTablesdHandler.class);
 
     private static final DynamoDbClient dynamoDB = DynamoDbClient.builder()
             .region(Region.EU_CENTRAL_1)
@@ -46,6 +49,15 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent requestEvent, Context context) {
+
+        logger.info("Received request with HTTP method: {}", requestEvent.getHttpMethod());
+        logger.info("Request path: {}", requestEvent.getPath());
+        logger.info("Request body: {}", requestEvent.getBody());
+
+
+        logger.info("Headers: {}", requestEvent.getHeaders());
+
+
         try {
             JSONObject requestBody = new JSONObject(requestEvent.getBody());
 
@@ -70,6 +82,8 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
                         .withBody("{\"error\": \"Reservation overlaps with an existing reservation.\"}");
             }
 
+            logger.info("passed validation ");
+
             String id = UUID.randomUUID().toString();
             Map<String, AttributeValue> item = new HashMap<>();
             item.put("id", AttributeValue.builder().s(String.valueOf(id)).build());
@@ -85,6 +99,8 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
                     .tableName("cmtr-85e8c71a-Reservations")
                     .item(item)
                     .build();
+            logger.info("defined data: " + item);
+
             PutItemResponse putItemResponse = dynamoDB.putItem(putItemRequest);
 
             JSONObject responseBody = new JSONObject()
@@ -96,7 +112,7 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
         } catch (Exception e) {
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(400)
-                    .withBody("There was an error in the request. Possible reasons include invalid input, table not found, or conflicting reservations.".toString());
+                    .withBody(e.getMessage().toString());
         }
     }
 

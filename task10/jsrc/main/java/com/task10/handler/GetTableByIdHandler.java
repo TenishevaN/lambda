@@ -47,7 +47,7 @@ public class GetTableByIdHandler implements RequestHandler<APIGatewayProxyReques
                     continue;
                 }
                 JsonObject table = new JsonObject();
-                table.addProperty("id", tableId);
+                table.addProperty("id", id);
                 table.addProperty("number", Integer.parseInt(item.get("number").n()));
                 table.addProperty("places", Integer.parseInt(item.get("places").n()));
                 table.addProperty("isVip", item.get("isVip").bool());

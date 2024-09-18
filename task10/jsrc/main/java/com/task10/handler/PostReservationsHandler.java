@@ -68,13 +68,15 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
             String slotTimeEndString = requestBody.getString("slotTimeEnd");
             int tableNumber = requestBody.getInt("tableNumber");
 
+            String id = UUID.randomUUID().toString();
+
             // Check if the table exists
-            if (!doesTableExist(tableNumber)) {
+            if (doesTableExist(id)) {
                 return new APIGatewayProxyResponseEvent()
                         .withStatusCode(400)
                         .withBody("{\"error\": \"Table does not exist.\"}");
             }
-
+            logger.info("doesTableExist passed ");
             // Check for overlapping reservations
             if (hasOverlappingReservations(String.valueOf(tableNumber), dateString, slotTimeStartString, slotTimeEndString)) {
                 return new APIGatewayProxyResponseEvent()
@@ -84,7 +86,7 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
 
             logger.info("passed validation ");
 
-            String id = UUID.randomUUID().toString();
+
             Map<String, AttributeValue> item = new HashMap<>();
             item.put("id", AttributeValue.builder().s(String.valueOf(id)).build());
             item.put("tableNumber", AttributeValue.builder().n(String.valueOf(tableNumber)).build());
@@ -116,10 +118,11 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
         }
     }
 
-    private boolean doesTableExist(int tableNumber) {
+    private boolean doesTableExist(String id) {
+        logger.info("doesTableExist ");
         GetItemRequest getItemRequest = GetItemRequest.builder()
                 .tableName("cmtr-85e8c71a-Reservations-test")
-                .key(Map.of("tableNumber", AttributeValue.builder().n(String.valueOf(tableNumber)).build()))
+                .key(Map.of("id", AttributeValue.builder().s(id).build()))
                 .build();
 
         GetItemResponse getItemResponse = dynamoDB.getItem(getItemRequest);

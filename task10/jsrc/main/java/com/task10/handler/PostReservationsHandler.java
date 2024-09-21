@@ -69,7 +69,7 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
             int tableNumber = requestBody.getInt("tableNumber");
 
             // Check if the table exists
-            if (!doesTableExist(tableNumber)) {
+            if (!doesTableExist("cmtr-85e8c71a-Tables-test")) {
                 return new APIGatewayProxyResponseEvent()
                         .withStatusCode(400)
                         .withBody("{\"error\": \"Table does not exist.\"}");
@@ -116,14 +116,18 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
         }
     }
 
-    private boolean doesTableExist(int tableNumber) {
-        GetItemRequest getItemRequest = GetItemRequest.builder()
-                .tableName("cmtr-85e8c71a-Tables")
-                .key(Map.of("tableNumber", AttributeValue.builder().n(String.valueOf(tableNumber)).build()))
-                .build();
+    private boolean doesTableExist(String tableName) {
 
-        GetItemResponse getItemResponse = dynamoDB.getItem(getItemRequest);
-        return getItemResponse.hasItem();
+        try {
+            dynamoDB.describeTable(DescribeTableRequest.builder()
+                    .tableName(tableName)
+                    .build());
+            logger.info(tableName + " exist");
+            return true;
+        } catch (ResourceNotFoundException e) {
+
+            return false;
+        }
     }
 
     private boolean hasOverlappingReservations(String tableNumber, String date, String slotTimeStart, String slotTimeEnd) {

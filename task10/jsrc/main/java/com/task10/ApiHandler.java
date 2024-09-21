@@ -11,6 +11,7 @@ import com.task10.handler.GetTablesdHandler;
 import com.task10.handler.GetTableByIdHandler;
 import com.task10.handler.PostTablesdHandler;
 import com.task10.handler.GetReservationsHandler;
+import com.task10.handler.GetTableNotExistHandler;
 import com.task10.handler.PostReservationsHandler;
 import com.task10.handler.RouteNotImplementedHandler;
 import com.task10.handler.PostSignInHandler;
@@ -36,6 +37,11 @@ import static com.syndicate.deployment.model.environment.ValueTransformer.USER_P
 import com.amazonaws.xray.AWSXRay;
 
 import com.syndicate.deployment.model.TracingMode;
+
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
+import software.amazon.awssdk.services.dynamodb.model.DescribeTableResponse;
 
 @DependsOn(resourceType = ResourceType.COGNITO_USER_POOL, name = "${booking_userpool}")
 @LambdaHandler(
@@ -82,11 +88,41 @@ public class ApiHandler implements RequestHandler<APIGatewayProxyRequestEvent, A
 	private RouteKey getRouteKey(APIGatewayProxyRequestEvent requestEvent) {
 		String path = requestEvent.getPath();
 		logger.info("path: " + path);
+
 		if (path.matches("/tables/\\d+")) {
 			logger.info("path matches \\d: " + path);
 			return new RouteKey(requestEvent.getHttpMethod(), "/tables/{tableId}");
 		}
+
+		if (path.matches("/reservations")) {
+			String tableName = System.getenv("reservations_table");
+			if (!doesTableExist(tableName)) {
+				logger.error("Table does not exist: " + tableName);
+				return new RouteKey("POST", "/notable");
+			}
+		}
 		return new RouteKey(requestEvent.getHttpMethod(), requestEvent.getPath());
+	}
+
+	private boolean doesTableExist(String tableName) {
+		logger.info("if table exist: " + tableName);
+		try {
+			DynamoDbClient dynamoDB = DynamoDbClient.builder()
+					.region(Region.EU_CENTRAL_1)
+					.build();
+
+			DescribeTableResponse describeTableResponse = dynamoDB.describeTable(DescribeTableRequest.builder()
+					.tableName(tableName)
+					.build());
+			logger.info("DescribeTableResponse: " + describeTableResponse);
+			return describeTableResponse != null && describeTableResponse.table() != null;
+		} catch (ResourceNotFoundException e) {
+			logger.info("Table does not exist: " + tableName, e);
+			return false;
+		} catch (Exception e) {
+			logger.error("Error checking if table exists: " + e.getMessage(), e);
+			return false;
+		}
 	}
 
 	private CognitoIdentityProviderClient initCognitoClient() {
@@ -106,7 +142,8 @@ public class ApiHandler implements RequestHandler<APIGatewayProxyRequestEvent, A
 				new RouteKey("GET", "/tables/{tableId}"), new GetTableByIdHandler(),
 				new RouteKey("GET", "/tables"), new GetTablesdHandler(),
 			    new RouteKey("POST", "/reservations"), new PostReservationsHandler(cognitoClient),
-				new RouteKey("GET", "/reservations"), new GetReservationsHandler()
+				new RouteKey("GET", "/reservations"), new GetReservationsHandler(),
+				new RouteKey("POST", "/notable"), new GetTableNotExistHandler()
 		);
 	}
 

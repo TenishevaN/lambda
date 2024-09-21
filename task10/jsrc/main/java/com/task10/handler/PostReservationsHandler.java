@@ -166,14 +166,14 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
             return true; // Overlap found
         }
 
-        // If no overlap found using primary key, check using GSI on tableNumber
-        String indexKeyConditionExpression = "tableNumber = :tableNumberValue";
+        // If no overlap found using primary key, check using GSI on tableNumber and date
+        String indexKeyConditionExpression = "tableNumber = :tableNumberValue and date = :dateValue";
 
         QueryRequest gsiQueryRequest = QueryRequest.builder()
                 .tableName(tableName)
                 .indexName("TableNumberIndex")
                 .keyConditionExpression(indexKeyConditionExpression)
-                .filterExpression(filterExpression + " and date = :dateValue")
+                .filterExpression(filterExpression)
                 .expressionAttributeValues(expressionAttributeValues)
                 .build();
 

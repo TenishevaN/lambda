@@ -37,6 +37,11 @@ import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.dynamodbv2.document.Table;
 
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+
 
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 
@@ -137,6 +142,12 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
 //            logger.error("Table does not exist: " + e.getMessage());
 //            return false;
 //        }
+
+
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard()
+                .withRegion(Regions.EU_CENTRAL_1) // Specify the AWS region, change as needed
+                .build();
+        DynamoDB dynamoDB = new DynamoDB(client);
 
         Table table = dynamoDB.getTable(tableName);
         try {

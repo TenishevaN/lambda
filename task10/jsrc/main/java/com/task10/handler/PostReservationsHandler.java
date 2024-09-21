@@ -80,11 +80,11 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
 
             logger.info("reservation id: " + id);
 
-            if (checkForOverlappingReservations(tableName, tableNumber, dateString, slotTimeStartString, slotTimeEndString)) {
-                return new APIGatewayProxyResponseEvent()
-                        .withStatusCode(400)
-                        .withBody("Reservation overlaps with an existing reservation.");
-            }
+//            if (checkForOverlappingReservations(tableName, tableNumber, dateString, slotTimeStartString, slotTimeEndString)) {
+//                return new APIGatewayProxyResponseEvent()
+//                        .withStatusCode(400)
+//                        .withBody("Reservation overlaps with an existing reservation.");
+//            }
 
 
             Map<String, AttributeValue> item = new HashMap<>();
@@ -135,15 +135,22 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
     private boolean checkForOverlappingReservations(String tableName, int tableNumber, String date, String startTime, String endTime) {
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
         expressionAttributeValues.put(":tableNumber", AttributeValue.builder().n(String.valueOf(tableNumber)).build());
-        expressionAttributeValues.put(":date", AttributeValue.builder().s(date).build());
+        expressionAttributeValues.put(":dateValue", AttributeValue.builder().s(date).build());
         expressionAttributeValues.put(":startTime", AttributeValue.builder().s(startTime).build());
         expressionAttributeValues.put(":endTime", AttributeValue.builder().s(endTime).build());
 
+        Map<String, String> expressionAttributeNames = new HashMap<>();
+        expressionAttributeNames.put("#date", "date");
+
+        String keyConditionExpression = "tableNumber = :tableNumber and #date = :dateValue";
+        String filterExpression = "slotTimeStart < :endTime and slotTimeEnd > :startTime";
+
         QueryRequest queryRequest = QueryRequest.builder()
                 .tableName(tableName)
-                .keyConditionExpression("tableNumber = :tableNumber and date = :date")
-                .filterExpression("slotTimeStart < :endTime and slotTimeEnd > :startTime")
+                .keyConditionExpression(keyConditionExpression)
+                .filterExpression(filterExpression)
                 .expressionAttributeValues(expressionAttributeValues)
+                .expressionAttributeNames(expressionAttributeNames)
                 .build();
 
         QueryResponse queryResponse = dynamoDB.query(queryRequest);

@@ -35,13 +35,6 @@ import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-//import com.amazonaws.services.dynamodbv2.document.Table;
-//
-//import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-//import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
-//import com.amazonaws.regions.Regions;
-//import com.amazonaws.services.dynamodbv2.document.DynamoDB;
-
 
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 
@@ -86,18 +79,12 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
             String id = UUID.randomUUID().toString();
 
             logger.info("reservation id: " + id);
-//            try {
-//                if (isOverlappingReservation(tableName, dateString, slotTimeStartString, slotTimeEndString, tableNumber)) {
-//                    return new APIGatewayProxyResponseEvent()
-//                            .withStatusCode(400)
-//                            .withBody("overlap issue");
-//                }
-//            } catch (Exception e) {
-//                logger.error("overlap issue: " + e.getMessage());
-//                return new APIGatewayProxyResponseEvent()
-//                        .withStatusCode(400)
-//                        .withBody(e.getMessage().toString());
-//            }
+
+            if (checkForOverlappingReservations(tableName, tableNumber, dateString, slotTimeStartString, slotTimeEndString)) {
+                return new APIGatewayProxyResponseEvent()
+                        .withStatusCode(400)
+                        .withBody("Reservation overlaps with an existing reservation.");
+            }
 
 
             Map<String, AttributeValue> item = new HashMap<>();
@@ -133,39 +120,34 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
 
     private boolean doesTableExist(String tableName) {
         try {
-            logger.info("Checking if table exists: " + tableName);
-            dynamoDB.describeTable(DescribeTableRequest.builder()
+            DescribeTableResponse describeTableResponse = dynamoDB.describeTable(DescribeTableRequest.builder()
                     .tableName(tableName)
                     .build());
+            return describeTableResponse != null && describeTableResponse.table() != null;
+        } catch (ResourceNotFoundException e) {
+            return false;
         } catch (Exception e) {
-            logger.error("Table does not exist: " + e.getMessage());
+            logger.error("Error checking if table exists: " + e.getMessage());
             return false;
         }
-        return true;
     }
 
-    private boolean isOverlappingReservation(String tableName, String date, String startTime, String endTime, int tableNumber) {
+    private boolean checkForOverlappingReservations(String tableName, int tableNumber, String date, String startTime, String endTime) {
+        Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
+        expressionAttributeValues.put(":tableNumber", AttributeValue.builder().n(String.valueOf(tableNumber)).build());
+        expressionAttributeValues.put(":date", AttributeValue.builder().s(date).build());
+        expressionAttributeValues.put(":startTime", AttributeValue.builder().s(startTime).build());
+        expressionAttributeValues.put(":endTime", AttributeValue.builder().s(endTime).build());
+
         QueryRequest queryRequest = QueryRequest.builder()
                 .tableName(tableName)
-                .keyConditionExpression("#tableNumber = :tableNumber")
-                .expressionAttributeNames(Map.of("#tableNumber", "tableNumber"))
-                .expressionAttributeValues(Map.of(":tableNumber", AttributeValue.builder().n(String.valueOf(tableNumber)).build()))
+                .keyConditionExpression("tableNumber = :tableNumber and date = :date")
+                .filterExpression("slotTimeStart < :endTime and slotTimeEnd > :startTime")
+                .expressionAttributeValues(expressionAttributeValues)
                 .build();
 
         QueryResponse queryResponse = dynamoDB.query(queryRequest);
-        for (Map<String, AttributeValue> item : queryResponse.items()) {
-            String existingDate = item.get("date").s();
-            String existingStartTime = item.get("slotTimeStart").s();
-            String existingEndTime = item.get("slotTimeEnd").s();
-            if (existingDate.equals(date) && timeOverlap(startTime, endTime, existingStartTime, existingEndTime)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean timeOverlap(String start1, String end1, String start2, String end2) {
-        return (start1.compareTo(end2) < 0 && end1.compareTo(start2) > 0);
+        return !queryResponse.items().isEmpty();
     }
 
 }

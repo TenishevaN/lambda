@@ -119,30 +119,34 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
     }
 
     private boolean doesTableExist(String tableName) {
+        logger.info("if table exist: " + tableName);
         try {
             DescribeTableResponse describeTableResponse = dynamoDB.describeTable(DescribeTableRequest.builder()
                     .tableName(tableName)
                     .build());
+            logger.info("DescribeTableResponse: " + describeTableResponse);
             return describeTableResponse != null && describeTableResponse.table() != null;
         } catch (ResourceNotFoundException e) {
+            logger.info("Table does not exist: " + tableName, e);
             return false;
         } catch (Exception e) {
-            logger.error("Error checking if table exists: " + e.getMessage());
+            logger.error("Error checking if table exists: " + e.getMessage(), e);
             return false;
         }
     }
 
-    private boolean checkForOverlappingReservations(String tableName, int tableNumber, String date, String startTime, String endTime) {
-
+    private boolean checkForOverlappingReservations(String tableName, String id, int tableNumber, String date, String startTime, String endTime) {
+        // Setup expression attribute values for the query
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
-        expressionAttributeValues.put(":tableNumber", AttributeValue.builder().n(String.valueOf(tableNumber)).build());
+        expressionAttributeValues.put(":idValue", AttributeValue.builder().s(id).build());
+        expressionAttributeValues.put(":tableNumberValue", AttributeValue.builder().n(String.valueOf(tableNumber)).build());
         expressionAttributeValues.put(":dateValue", AttributeValue.builder().s(date).build());
         expressionAttributeValues.put(":startTime", AttributeValue.builder().s(startTime).build());
         expressionAttributeValues.put(":endTime", AttributeValue.builder().s(endTime).build());
 
-        String keyConditionExpression = "tableNumber = :tableNumber and #date = :dateValue";
+        String keyConditionExpression = "id = :idValue and tableNumber = :tableNumberValue";
 
-        String filterExpression = "slotTimeStart < :endTime and slotTimeEnd > :startTime";
+        String filterExpression = "date = :dateValue and slotTimeStart < :endTime and slotTimeEnd > :startTime";
 
         Map<String, String> expressionAttributeNames = new HashMap<>();
         expressionAttributeNames.put("#date", "date");

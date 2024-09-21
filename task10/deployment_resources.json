@@ -206,13 +206,18 @@
   },
   "${reservations_table}": {
     "resource_type": "dynamodb_table",
-    "hash_key_name": "tableNumber",
-    "hash_key_type": "N",
-    "range_key_name": "date",
-    "range_key_type": "S",
+    "hash_key_name": "id",
+    "hash_key_type": "S",
     "read_capacity": 1,
     "write_capacity": 1,
-    "global_indexes": [],
+    "global_indexes": [
+      {
+        "index_name": "TableNumberIndex",
+        "hash_key_name": "tableNumber",
+        "hash_key_type": "N",
+        "projection_type": "ALL"
+      }
+    ],
     "autoscaling": []
   }
 }

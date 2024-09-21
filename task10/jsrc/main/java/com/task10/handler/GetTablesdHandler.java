@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
-
 public class GetTablesdHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
     private static final Logger logger = LoggerFactory.getLogger(GetTablesdHandler.class);
 
@@ -50,10 +49,12 @@ public class GetTablesdHandler implements RequestHandler<APIGatewayProxyRequestE
         logger.info("Headers: {}", requestEvent.getHeaders());
         logger.info("Query parameters: {}", requestEvent.getQueryStringParameters());
 
+        String tableName = System.getenv("tables_table");
+
         try {
             DynamoDbClient dynamoDB = DynamoDbClient.create();
             ScanRequest scanRequest = ScanRequest.builder()
-                    .tableName("cmtr-85e8c71a-Tables-test")
+                    .tableName(tableName)
                     .build();
 
             ScanResponse result = dynamoDB.scan(scanRequest);

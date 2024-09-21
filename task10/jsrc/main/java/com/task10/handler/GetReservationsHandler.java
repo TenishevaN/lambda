@@ -33,9 +33,12 @@ public class GetReservationsHandler implements RequestHandler<APIGatewayProxyReq
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent requestEvent, Context context) {
+
+        String tableName = System.getenv("reservations_table");
+
         try {
             ScanRequest scanRequest = ScanRequest.builder()
-                    .tableName("cmtr-85e8c71a-Reservations-test")
+                    .tableName(tableName)
                     .build();
 
             ScanResponse result = dynamoDB.scan(scanRequest);

@@ -21,7 +21,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.Gson;
 
-
 public class GetTableByIdHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
     private static final DynamoDbClient dynamoDB = DynamoDbClient.builder()
@@ -34,9 +33,11 @@ public class GetTableByIdHandler implements RequestHandler<APIGatewayProxyReques
         String tableId = requestEvent.getPathParameters().get("tableId");
         logger.log("Received request for tableId: " + tableId);
 
+        String tableName = System.getenv("tables_table");
+
         try {
             ScanRequest scanRequest = ScanRequest.builder()
-                    .tableName("cmtr-85e8c71a-Tables-test")
+                    .tableName(tableName)
                     .build();
 
             ScanResponse result = dynamoDB.scan(scanRequest);

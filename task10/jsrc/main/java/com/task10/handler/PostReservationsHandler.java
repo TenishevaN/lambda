@@ -43,29 +43,25 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
             .region(Region.EU_CENTRAL_1)
             .build();
 
+
     public PostReservationsHandler(CognitoIdentityProviderClient cognitoClient) {
         super(cognitoClient);
     }
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent requestEvent, Context context) {
+       String tableName = System.getenv("reservations_table");
 
-        if (!doesTableExist("cmtr-85e8c71a-Tables-test")) {
+        if (!doesTableExist(tableName)) {
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(400)
                     .withBody("{\"error\": \"Reservation table doesn't exist.\"}");
         }
 
         try {
+            logger.info("passed validation ");
 
             DynamoDbClient dynamoDB = DynamoDbClient.create();
-//            if (!doesTableExist(dynamoDB, "cmtr-85e8c71a-Reservations-test")) {
-//                return new APIGatewayProxyResponseEvent()
-//                        .withStatusCode(400)
-//                        .withBody("DynamoDB table does not exist.");
-//            }
-
-
 
             JSONObject requestBody = new JSONObject(requestEvent.getBody());
 
@@ -78,13 +74,8 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
 
             String id = UUID.randomUUID().toString();
 
-//            if (hasOverlappingReservation(dynamoDB, tableNumber, dateString)) {
-//                return new APIGatewayProxyResponseEvent()
-//                        .withStatusCode(400)
-//                        .withBody("here is an overlapping reservation.");
-//            }
+            logger.info("reservation id: " + id);
 
-            logger.info("passed validation ");
 
             Map<String, AttributeValue> item = new HashMap<>();
             item.put("id", AttributeValue.builder().s(String.valueOf(id)).build());
@@ -97,7 +88,7 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
 
 
             PutItemRequest putItemRequest = PutItemRequest.builder()
-                    .tableName("cmtr-85e8c71a-Reservations-test")
+                    .tableName(tableName)
                     .item(item)
                     .build();
             logger.info("defined data: " + item);
@@ -119,11 +110,14 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
 
     private boolean doesTableExist(String tableName) {
         try {
+            logger.info("start validation, table name: " + tableName);
             dynamoDB.describeTable(DescribeTableRequest.builder()
                     .tableName(tableName)
                     .build());
+
             return true;
-        } catch (ResourceNotFoundException e) {
+        } catch (Exception e) {
+            logger.info("doesTableExist exception: " + e);
             return false;
         }
     }

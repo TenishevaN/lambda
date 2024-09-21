@@ -48,6 +48,8 @@ public class PostTablesdHandler  extends CognitoSupport  implements RequestHandl
         logger.info("Headers: {}", requestEvent.getHeaders());
         logger.info("Query parameters: {}", requestEvent.getQueryStringParameters());
 
+        String tableName = System.getenv("tables_table");
+
         try {
             JSONObject requestBody = new JSONObject(requestEvent.getBody());
             int id = requestBody.getInt("id");
@@ -66,7 +68,7 @@ public class PostTablesdHandler  extends CognitoSupport  implements RequestHandl
             }
 
             PutItemRequest putItemRequest = PutItemRequest.builder()
-                    .tableName("cmtr-85e8c71a-Tables-test")
+                    .tableName(tableName)
                     .item(item)
                     .build();
             PutItemResponse putItemResponse = dynamoDB.putItem(putItemRequest);

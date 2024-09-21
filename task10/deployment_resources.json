@@ -23,12 +23,15 @@
             "ssm:GetParameter",
             "kms:Decrypt",
 
-            "dynamodb:GetItem",
-            "dynamodb:Query",
+            "dynamodb:DescribeTable",
+            "dynamodb:CreateTable",
             "dynamodb:PutItem",
-            "dynamodb:Batch*",
+            "dynamodb:GetItem",
+            "dynamodb:UpdateItem",
             "dynamodb:DeleteItem",
-            "dynamodb:Scan"
+            "dynamodb:Scan",
+            "dynamodb:Query",
+            "dynamodb:Batch*"
           ],
           "Effect": "Allow",
           "Resource": "*"

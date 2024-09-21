@@ -35,6 +35,8 @@ import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.amazonaws.services.dynamodbv2.document.Table;
+
 
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 
@@ -125,16 +127,24 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
     }
 
     private boolean doesTableExist(String tableName) {
+//        try {
+//            logger.info("Checking if table exists: " + tableName);
+//            dynamoDB.describeTable(DescribeTableRequest.builder()
+//                    .tableName(tableName)
+//                    .build());
+//            return true;
+//        } catch (Exception e) {
+//            logger.error("Table does not exist: " + e.getMessage());
+//            return false;
+//        }
+
+        Table table = dynamoDB.getTable(tableName);
         try {
-            logger.info("Checking if table exists: " + tableName);
-            dynamoDB.describeTable(DescribeTableRequest.builder()
-                    .tableName(tableName)
-                    .build());
-            return true;
-        } catch (Exception e) {
-            logger.error("Table does not exist: " + e.getMessage());
+            table.describe();
+        } catch (ResourceNotFoundException e) {
             return false;
         }
+        return true;
     }
 
     private boolean isOverlappingReservation(String tableName, String date, String startTime, String endTime, int tableNumber) {

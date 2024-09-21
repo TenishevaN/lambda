@@ -139,21 +139,18 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
         // Setup expression attribute values for the query
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
         expressionAttributeValues.put(":idValue", AttributeValue.builder().s(id).build());
+        expressionAttributeValues.put(":tableNumberValue", AttributeValue.builder().n(String.valueOf(tableNumber)).build());
         expressionAttributeValues.put(":dateValue", AttributeValue.builder().s(date).build());
         expressionAttributeValues.put(":startTime", AttributeValue.builder().s(startTime).build());
         expressionAttributeValues.put(":endTime", AttributeValue.builder().s(endTime).build());
-        expressionAttributeValues.put(":tableNumberValue", AttributeValue.builder().n(String.valueOf(tableNumber)).build());
-
-        // Define the key condition expression using partition key and sort key
-        String keyConditionExpression = "id = :idValue and date = :dateValue";
 
         // Define the filter expression to find overlapping time slots
-        String filterExpression = "slotTimeStart < :endTime and slotTimeEnd > :startTime";
+        String filterExpression = "date = :dateValue and slotTimeStart < :endTime and slotTimeEnd > :startTime";
 
-        // Build the query request using the primary key
+        // First, query using the primary key (id)
         QueryRequest queryRequest = QueryRequest.builder()
                 .tableName(tableName)
-                .keyConditionExpression(keyConditionExpression)
+                .keyConditionExpression("id = :idValue")
                 .filterExpression(filterExpression)
                 .expressionAttributeValues(expressionAttributeValues)
                 .build();
@@ -166,13 +163,11 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
             return true; // Overlap found
         }
 
-        // If no overlap found using primary key, check using GSI on tableNumber and date
-        String indexKeyConditionExpression = "tableNumber = :tableNumberValue and date = :dateValue";
-
+        // If no overlap found using primary key, check using GSI on tableNumber
         QueryRequest gsiQueryRequest = QueryRequest.builder()
                 .tableName(tableName)
-                .indexName("TableNumberIndex")
-                .keyConditionExpression(indexKeyConditionExpression)
+                .indexName("tableNumber")
+                .keyConditionExpression("tableNumber_idx = :tableNumberValue")
                 .filterExpression(filterExpression)
                 .expressionAttributeValues(expressionAttributeValues)
                 .build();

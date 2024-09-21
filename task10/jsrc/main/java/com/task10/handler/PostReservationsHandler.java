@@ -141,22 +141,24 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
                     .tableName(tableName)
                     .build();
 
+            logger.info("Check overloap with: id = " + id +", tableNumber= "+ tableNumber +", date = "+ date +", startTime="+startTime);
+
             ScanResponse result = dynamoDB.scan(scanRequest);
             for (Map<String, AttributeValue> item : result.items()) {
-                // Safely retrieve and parse tableNumber
                 AttributeValue tableNumberAttr = item.get("tableNumber");
                 if (tableNumberAttr == null || tableNumberAttr.n() == null) {
                     continue; // Skip this item if tableNumber is missing
                 }
                 int tableNumberN = Integer.parseInt(tableNumberAttr.n());
 
-                // Safely retrieve date, startTime, and endTime
                 String dateV = safeGetString(item, "date");
                 String startTimeV = safeGetString(item, "startTime");
                 String endTimeV = safeGetString(item, "endTime");
 
-                // Check for overlap
-                if (tableNumber == tableNumberN && date.equals(dateV) && startTime.equals(startTimeV) && endTime.equals(endTimeV)) {
+                logger.info("actual: tableNumber= "+ tableNumberN +", date = "+ dateV +", startTime="+startTimeV);
+
+
+                if ((tableNumber == tableNumberN) && (date.equals(dateV))) {
                     return true;
                 }
             }

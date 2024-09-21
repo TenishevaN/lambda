@@ -50,14 +50,6 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent requestEvent, Context context) {
 
-        logger.info("Received request with HTTP method: {}", requestEvent.getHttpMethod());
-        logger.info("Request path: {}", requestEvent.getPath());
-        logger.info("Request body: {}", requestEvent.getBody());
-
-
-        logger.info("Headers: {}", requestEvent.getHeaders());
-
-
         try {
             JSONObject requestBody = new JSONObject(requestEvent.getBody());
 
@@ -68,12 +60,7 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
             String slotTimeEndString = requestBody.getString("slotTimeEnd");
             int tableNumber = requestBody.getInt("tableNumber");
 
-            // Check if the table exists
-            if (!doesTableExist("cmtr-85e8c71a-Tables-test")) {
-                return new APIGatewayProxyResponseEvent()
-                        .withStatusCode(400)
-                        .withBody("{\"error\": \"Table does not exist.\"}");
-            }
+            String id = UUID.randomUUID().toString();
 
             // Check for overlapping reservations
             if (hasOverlappingReservations(String.valueOf(tableNumber), dateString, slotTimeStartString, slotTimeEndString)) {
@@ -116,16 +103,13 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
         }
     }
 
-    private boolean doesTableExist(String tableName) {
-
+    private boolean doesTableExist(DynamoDbClient dynamoDB, String tableName) {
         try {
             dynamoDB.describeTable(DescribeTableRequest.builder()
                     .tableName(tableName)
                     .build());
-            logger.info(tableName + " exist");
             return true;
         } catch (ResourceNotFoundException e) {
-
             return false;
         }
     }

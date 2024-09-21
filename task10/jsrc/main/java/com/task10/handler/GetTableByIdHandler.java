@@ -47,7 +47,7 @@ public class GetTableByIdHandler implements RequestHandler<APIGatewayProxyReques
                     continue;
                 }
                 JsonObject table = new JsonObject();
-                table.addProperty("id", tableId);
+                table.addProperty("id", Integer.parseInt(item.get("id").n()));
                 table.addProperty("number", Integer.parseInt(item.get("number").n()));
                 table.addProperty("places", Integer.parseInt(item.get("places").n()));
                 table.addProperty("isVip", item.get("isVip").bool());
@@ -55,20 +55,22 @@ public class GetTableByIdHandler implements RequestHandler<APIGatewayProxyReques
                     table.addProperty("minOrder", Integer.parseInt(item.get("minOrder").n()));
                 }
                 tablesArray.add(table);
+                JsonObject responseBody = new JsonObject();
+                responseBody.add("tables", tablesArray);
+
+                Gson gson = new Gson();
+                return new APIGatewayProxyResponseEvent()
+                        .withStatusCode(200)
+                        .withBody(gson.toJson(table));
             }
 
-            JsonObject responseBody = new JsonObject();
-            responseBody.add("tables", tablesArray);
 
-            Gson gson = new Gson();
-            return new APIGatewayProxyResponseEvent()
-                    .withStatusCode(200)
-                    .withBody(gson.toJson(table));
         } catch (Exception e) {
             logger.log("Error processing request: " + e.getMessage());
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(400)
                     .withBody("{\"error\": \"There was an error in the request.\"}");
         }
+        return null;
     }
 }

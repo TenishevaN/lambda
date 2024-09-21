@@ -54,18 +54,12 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent requestEvent, Context context) {
         String tableName = System.getenv("reservations_table");
 
-        try{
+
         if (!doesTableExist(tableName)) {
             logger.error("Table does not exist: " + tableName);
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(400)
                     .withBody("Table does not exist: " + tableName);
-        }
-        } catch (Exception e) {
-            logger.error("doesTableExist issue: " + e.getMessage());
-            return new APIGatewayProxyResponseEvent()
-                    .withStatusCode(400)
-                    .withBody(e.getMessage().toString());
         }
 
         try {
@@ -85,18 +79,18 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
             String id = UUID.randomUUID().toString();
 
             logger.info("reservation id: " + id);
-            try {
-                if (isOverlappingReservation(tableName, dateString, slotTimeStartString, slotTimeEndString, tableNumber)) {
-                    return new APIGatewayProxyResponseEvent()
-                            .withStatusCode(400)
-                            .withBody("overlap issue");
-                }
-            } catch (Exception e) {
-                logger.error("overlap issue: " + e.getMessage());
-                return new APIGatewayProxyResponseEvent()
-                        .withStatusCode(400)
-                        .withBody(e.getMessage().toString());
-            }
+//            try {
+//                if (isOverlappingReservation(tableName, dateString, slotTimeStartString, slotTimeEndString, tableNumber)) {
+//                    return new APIGatewayProxyResponseEvent()
+//                            .withStatusCode(400)
+//                            .withBody("overlap issue");
+//                }
+//            } catch (Exception e) {
+//                logger.error("overlap issue: " + e.getMessage());
+//                return new APIGatewayProxyResponseEvent()
+//                        .withStatusCode(400)
+//                        .withBody(e.getMessage().toString());
+//            }
 
 
             Map<String, AttributeValue> item = new HashMap<>();

@@ -86,7 +86,6 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
 
             logger.info("passed validation ");
 
-            String id = UUID.randomUUID().toString();
             Map<String, AttributeValue> item = new HashMap<>();
             item.put("id", AttributeValue.builder().s(String.valueOf(id)).build());
             item.put("tableNumber", AttributeValue.builder().n(String.valueOf(tableNumber)).build());

@@ -33,12 +33,17 @@ import org.slf4j.LoggerFactory;
 import static com.syndicate.deployment.model.environment.ValueTransformer.USER_POOL_NAME_TO_CLIENT_ID;
 import static com.syndicate.deployment.model.environment.ValueTransformer.USER_POOL_NAME_TO_USER_POOL_ID;
 
+import com.amazonaws.xray.AWSXRay;
+
+import com.syndicate.deployment.model.TracingMode;
+
 @DependsOn(resourceType = ResourceType.COGNITO_USER_POOL, name = "${booking_userpool}")
 @LambdaHandler(
     lambdaName = "api_handler",
 	roleName = "api-handler-role",
 	isPublishVersion = false,
-		runtime = DeploymentRuntime.JAVA17
+	runtime = DeploymentRuntime.JAVA17,
+	tracingMode = TracingMode.Active
 )
 @EnvironmentVariables(value = {
 		@EnvironmentVariable(key = "REGION", value = "${region}"),

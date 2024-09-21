@@ -50,6 +50,12 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent requestEvent, Context context) {
 
+        if (!doesTableExist("cmtr-85e8c71a-Tables-test")) {
+            return new APIGatewayProxyResponseEvent()
+                    .withStatusCode(400)
+                    .withBody("{\"error\": \"Reservation table doesn't exist.\"}");
+        }
+
         try {
             JSONObject requestBody = new JSONObject(requestEvent.getBody());
 
@@ -61,6 +67,7 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
             int tableNumber = requestBody.getInt("tableNumber");
 
             String id = UUID.randomUUID().toString();
+
 
             // Check for overlapping reservations
             if (hasOverlappingReservations(String.valueOf(tableNumber), dateString, slotTimeStartString, slotTimeEndString)) {
@@ -103,7 +110,7 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
         }
     }
 
-    private boolean doesTableExist(DynamoDbClient dynamoDB, String tableName) {
+    private boolean doesTableExist(String tableName) {
         try {
             dynamoDB.describeTable(DescribeTableRequest.builder()
                     .tableName(tableName)
@@ -122,7 +129,7 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
         expressionAttributeValues.put(":slotTimeEnd", AttributeValue.builder().s(slotTimeEnd).build());
 
         QueryRequest queryRequest = QueryRequest.builder()
-                .tableName("cmtr-85e8c71a-Reservations")
+                .tableName("cmtr-85e8c71a-Reservations-test")
                 .keyConditionExpression("tableNumber = :tableNumber AND date = :date")
                 .filterExpression("slotTimeStart < :slotTimeEnd AND slotTimeEnd > :slotTimeStart")
                 .expressionAttributeValues(expressionAttributeValues)

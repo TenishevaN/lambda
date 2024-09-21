@@ -136,45 +136,26 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
     }
 
     private boolean checkForOverlappingReservations(String tableName, String id, int tableNumber, String date, String startTime, String endTime) {
-        // Setup expression attribute values for the query
-        Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
-        expressionAttributeValues.put(":idValue", AttributeValue.builder().s(id).build());
-        expressionAttributeValues.put(":tableNumberValue", AttributeValue.builder().n(String.valueOf(tableNumber)).build());
-        expressionAttributeValues.put(":dateValue", AttributeValue.builder().s(date).build());
-        expressionAttributeValues.put(":startTime", AttributeValue.builder().s(startTime).build());
-        expressionAttributeValues.put(":endTime", AttributeValue.builder().s(endTime).build());
+        try {
+            ScanRequest scanRequest = ScanRequest.builder()
+                    .tableName(tableName)
+                    .build();
 
-        // Define the filter expression to find overlapping time slots
-        String filterExpression = "date = :dateValue and slotTimeStart < :endTime and slotTimeEnd > :startTime";
-
-        // First, query using the primary key (id)
-        QueryRequest queryRequest = QueryRequest.builder()
-                .tableName(tableName)
-                .keyConditionExpression("id = :idValue")
-                .filterExpression(filterExpression)
-                .expressionAttributeValues(expressionAttributeValues)
-                .build();
-
-        // Execute the query
-        QueryResponse queryResponse = dynamoDB.query(queryRequest);
-
-        // Check if any items overlap
-        if (!queryResponse.items().isEmpty()) {
-            return true; // Overlap found
+            ScanResponse result = dynamoDB.scan(scanRequest);
+            for (Map<String, AttributeValue> item : result.items()) {
+                int tableNumberN = Integer.parseInt(item.get("tableNumber").n());
+                String dateV = item.get("date").s();
+                String startTimeV =  item.get("startTime").s();
+                String endTimeV =  item.get("endTime").s();
+                if (tableNumber==tableNumberN && date.equals(dateV) && startTime.equals(startTimeV) && endTime.equals(endTimeV)) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error processing request: " + e.getMessage());
+            return false;
         }
-
-        // If no overlap found using primary key, check using GSI on tableNumber
-        QueryRequest gsiQueryRequest = QueryRequest.builder()
-                .tableName(tableName)
-                .indexName("tableNumber")
-                .keyConditionExpression("tableNumber_idx = :tableNumberValue")
-                .filterExpression(filterExpression)
-                .expressionAttributeValues(expressionAttributeValues)
-                .build();
-
-        QueryResponse gsiQueryResponse = dynamoDB.query(gsiQueryRequest);
-
-        return !gsiQueryResponse.items().isEmpty(); // Return true if any overlap found in GSI
+        return false;
     }
 
 }

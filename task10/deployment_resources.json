@@ -210,13 +210,7 @@
     "hash_key_type": "S",
     "read_capacity": 1,
     "write_capacity": 1,
-    "global_indexes": [
-      {
-        "name": "tableNumber",
-        "index_key_name": "tableNumber_idx",
-        "index_key_type": "N"
-      }
-    ],
+    "global_indexes": [],
     "autoscaling": []
   }
 }

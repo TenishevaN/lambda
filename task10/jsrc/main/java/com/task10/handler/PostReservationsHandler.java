@@ -136,30 +136,50 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
     }
 
     private boolean checkForOverlappingReservations(String tableName, String id, int tableNumber, String date, String startTime, String endTime) {
+        // Setup expression attribute values for the query
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
         expressionAttributeValues.put(":idValue", AttributeValue.builder().s(id).build());
-        expressionAttributeValues.put(":tableNumberValue", AttributeValue.builder().n(String.valueOf(tableNumber)).build());
         expressionAttributeValues.put(":dateValue", AttributeValue.builder().s(date).build());
         expressionAttributeValues.put(":startTime", AttributeValue.builder().s(startTime).build());
         expressionAttributeValues.put(":endTime", AttributeValue.builder().s(endTime).build());
+        expressionAttributeValues.put(":tableNumberValue", AttributeValue.builder().n(String.valueOf(tableNumber)).build());
 
-        String keyConditionExpression = "id = :idValue and tableNumber = :tableNumberValue";
+        // Define the key condition expression using partition key and sort key
+        String keyConditionExpression = "id = :idValue and date = :dateValue";
 
-        String filterExpression = "date = :dateValue and slotTimeStart < :endTime and slotTimeEnd > :startTime";
+        // Define the filter expression to find overlapping time slots
+        String filterExpression = "slotTimeStart < :endTime and slotTimeEnd > :startTime";
 
-        Map<String, String> expressionAttributeNames = new HashMap<>();
-        expressionAttributeNames.put("#date", "date");
-
+        // Build the query request using the primary key
         QueryRequest queryRequest = QueryRequest.builder()
                 .tableName(tableName)
                 .keyConditionExpression(keyConditionExpression)
                 .filterExpression(filterExpression)
                 .expressionAttributeValues(expressionAttributeValues)
-                .expressionAttributeNames(expressionAttributeNames)
                 .build();
 
+        // Execute the query
         QueryResponse queryResponse = dynamoDB.query(queryRequest);
-        return !queryResponse.items().isEmpty();
+
+        // Check if any items overlap
+        if (!queryResponse.items().isEmpty()) {
+            return true; // Overlap found
+        }
+
+        // If no overlap found using primary key, check using GSI on tableNumber
+        String indexKeyConditionExpression = "tableNumber = :tableNumberValue";
+
+        QueryRequest gsiQueryRequest = QueryRequest.builder()
+                .tableName(tableName)
+                .indexName("TableNumberIndex")
+                .keyConditionExpression(indexKeyConditionExpression)
+                .filterExpression(filterExpression + " and date = :dateValue")
+                .expressionAttributeValues(expressionAttributeValues)
+                .build();
+
+        QueryResponse gsiQueryResponse = dynamoDB.query(gsiQueryRequest);
+
+        return !gsiQueryResponse.items().isEmpty(); // Return true if any overlap found in GSI
     }
 
 }

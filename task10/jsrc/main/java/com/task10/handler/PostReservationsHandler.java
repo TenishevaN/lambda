@@ -53,6 +53,7 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
        String tableName = System.getenv("reservations_table");
 
         if (!doesTableExist(tableName)) {
+            logger.error("Table does not exist: " + tableName);
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(400)
                     .withBody("{\"error\": \"Reservation table doesn't exist.\"}");
@@ -75,6 +76,12 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
             String id = UUID.randomUUID().toString();
 
             logger.info("reservation id: " + id);
+
+            if (isOverlappingReservation(tableName, dateString, slotTimeStartString, slotTimeEndString, tableNumber)) {
+                return new APIGatewayProxyResponseEvent()
+                        .withStatusCode(400)
+                        .withBody("{\"error\": \"Reservation overlaps with an existing reservation.\"}");
+            }
 
 
             Map<String, AttributeValue> item = new HashMap<>();
@@ -110,40 +117,40 @@ public class PostReservationsHandler  extends CognitoSupport  implements Request
 
     private boolean doesTableExist(String tableName) {
         try {
-            logger.info("start validation, table name: " + tableName);
+            logger.info("Checking if table exists: " + tableName);
             dynamoDB.describeTable(DescribeTableRequest.builder()
                     .tableName(tableName)
                     .build());
-
             return true;
         } catch (Exception e) {
-            logger.info("doesTableExist exception: " + e);
+            logger.error("Table does not exist: " + e.getMessage());
             return false;
         }
     }
 
-//    private boolean hasOverlappingReservation(DynamoDbClient dynamoDB, int tableNumber, String date) {
-//        String tableName = "cmtr-85e8c71a-Reservations-test";
-//
-//        // Construct the condition to find reservations for the same table on the same date that overlap in time
-//        String keyConditionExpression = "tableId = :tableId and date = :date";
-//        String filterExpression = "slotTimeStart < :endTime and slotTimeEnd > :startTime";
-//
-//        Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
-//        expressionAttributeValues.put(":tableNumber", AttributeValue.builder().n(String.valueOf(tableNumber)).build());
-//        expressionAttributeValues.put(":date", AttributeValue.builder().s(date).build());
-//
-//        QueryRequest queryRequest = QueryRequest.builder()
-//                .tableName(tableName)
-//                .keyConditionExpression(keyConditionExpression)
-//                .filterExpression(filterExpression)
-//                .expressionAttributeValues(expressionAttributeValues)
-//                .build();
-//
-//        QueryResponse queryResponse = dynamoDB.query(queryRequest);
-//
-//        // If the query returns any items, there is an overlapping reservation
-//        return !queryResponse.items().isEmpty();
-//    }
+    private boolean isOverlappingReservation(String tableName, String date, String startTime, String endTime, int tableNumber) {
+        QueryRequest queryRequest = QueryRequest.builder()
+                .tableName(tableName)
+                .keyConditionExpression("tableNumber = :tableNumber AND date = :date")
+                .expressionAttributeValues(Map.of(
+                        ":tableNumber", AttributeValue.builder().n(String.valueOf(tableNumber)).build(),
+                        ":date", AttributeValue.builder().s(date).build()
+                ))
+                .build();
+
+        QueryResponse queryResponse = dynamoDB.query(queryRequest);
+        for (Map<String, AttributeValue> item : queryResponse.items()) {
+            String existingStartTime = item.get("slotTimeStart").s();
+            String existingEndTime = item.get("slotTimeEnd").s();
+            if (timeOverlap(startTime, endTime, existingStartTime, existingEndTime)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean timeOverlap(String start1, String end1, String start2, String end2) {
+        return (start1.compareTo(end2) < 0 && end1.compareTo(start2) > 0);
+    }
 
 }

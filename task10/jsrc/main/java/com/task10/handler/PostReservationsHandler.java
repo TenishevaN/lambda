@@ -143,11 +143,20 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
 
             ScanResponse result = dynamoDB.scan(scanRequest);
             for (Map<String, AttributeValue> item : result.items()) {
-                int tableNumberN = Integer.parseInt(item.get("tableNumber").n());
-                String dateV = item.get("date").s();
-                String startTimeV =  item.get("startTime").s();
-                String endTimeV =  item.get("endTime").s();
-                if (tableNumber==tableNumberN && date.equals(dateV) && startTime.equals(startTimeV) && endTime.equals(endTimeV)) {
+                // Safely retrieve and parse tableNumber
+                AttributeValue tableNumberAttr = item.get("tableNumber");
+                if (tableNumberAttr == null || tableNumberAttr.n() == null) {
+                    continue; // Skip this item if tableNumber is missing
+                }
+                int tableNumberN = Integer.parseInt(tableNumberAttr.n());
+
+                // Safely retrieve date, startTime, and endTime
+                String dateV = safeGetString(item, "date");
+                String startTimeV = safeGetString(item, "startTime");
+                String endTimeV = safeGetString(item, "endTime");
+
+                // Check for overlap
+                if (tableNumber == tableNumberN && date.equals(dateV) && startTime.equals(startTimeV) && endTime.equals(endTimeV)) {
                     return true;
                 }
             }
@@ -158,4 +167,8 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
         return false;
     }
 
+    private String safeGetString(Map<String, AttributeValue> item, String key) {
+        AttributeValue value = item.get(key);
+        return value == null ? null : value.s();
+    }
 }

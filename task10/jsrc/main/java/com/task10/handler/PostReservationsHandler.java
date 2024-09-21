@@ -80,7 +80,7 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
 
             logger.info("reservation id: " + id);
 
-            if (checkForOverlappingReservations(tableName, tableNumber, dateString, slotTimeStartString, slotTimeEndString)) {
+            if (checkForOverlappingReservations(tableName, id, tableNumber, dateString, slotTimeStartString, slotTimeEndString)) {
                 return new APIGatewayProxyResponseEvent()
                         .withStatusCode(400)
                         .withBody("Reservation overlaps with an existing reservation.");
@@ -136,7 +136,6 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
     }
 
     private boolean checkForOverlappingReservations(String tableName, String id, int tableNumber, String date, String startTime, String endTime) {
-        // Setup expression attribute values for the query
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
         expressionAttributeValues.put(":idValue", AttributeValue.builder().s(id).build());
         expressionAttributeValues.put(":tableNumberValue", AttributeValue.builder().n(String.valueOf(tableNumber)).build());

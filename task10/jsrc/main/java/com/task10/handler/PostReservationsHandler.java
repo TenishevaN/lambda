@@ -7,12 +7,12 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
-import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.StringWriter;
 import java.io.PrintWriter;
@@ -27,6 +27,14 @@ import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.json.JSONArray;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.Gson;
 
 
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
@@ -139,7 +147,6 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
     public boolean doesTablesTableExist(String tableName, int tableNumber) {
 
         String tableId = String.valueOf(tableNumber);
-        String tableName = System.getenv("tables_table");
         boolean tableExist = false;
 
         try {
@@ -157,10 +164,8 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
             }
             return tableExist;
         } catch (Exception e) {
-            logger.log("Error processing request: " + e.getMessage());
-            return false;
+           return false;
         }
-        return false;
     }
 
     private boolean checkForOverlappingReservations(String tableName, String id, int tableNumber, String date, String startTime, String endTime) {

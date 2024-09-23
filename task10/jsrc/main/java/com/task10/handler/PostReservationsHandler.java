@@ -147,7 +147,7 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
             ScanResponse result = dynamoDB.scan(scanRequest);
 
             for (Map<String, AttributeValue> item : result.items()) {
-                AttributeValue tableNumberAttr = item.get("tableNumber");
+                AttributeValue tableNumberAttr = item.get("number");
                 int tableNumberN = Integer.parseInt(tableNumberAttr.n());
                 if (tableNumberN == tableNumber) {
                     tableExist = true;

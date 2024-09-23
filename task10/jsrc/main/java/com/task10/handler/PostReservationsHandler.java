@@ -46,9 +46,10 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent requestEvent, Context context) {
         String tableName = System.getenv("reservations_table");
+        String tablesTableName = System.getenv("tables_table");
 
 
-        if (!doesTableExist(tableName)) {
+        if (!doesTableExist(tablesTableName)) {
             logger.error("Table does not exist: " + tableName);
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(400)
@@ -140,7 +141,7 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
             for (Map<String, AttributeValue> item : result.items()) {
                 AttributeValue tableNumberAttr = item.get("tableNumber");
                 if (tableNumberAttr == null || tableNumberAttr.n() == null) {
-                    continue; // Skip this item if tableNumber is missing
+                    continue;
                 }
                 int tableNumberN = Integer.parseInt(tableNumberAttr.n());
 

@@ -61,9 +61,19 @@
       "post": {
         "summary": "Create a new reservation",
         "description": "Adds a new reservation to the database.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReservationDetails"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "200 response",
+            "description": "Reservation created successfully",
             "headers": {
               "Access-Control-Allow-Origin": {
                 "schema": {
@@ -195,9 +205,19 @@
       "post": {
         "summary": "Create a new table",
         "description": "Adds a new table to the restaurant layout.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TableDetails"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "200 response",
+            "description": "Table created successfully",
             "headers": {
               "Access-Control-Allow-Origin": {
                 "schema": {
@@ -287,9 +307,19 @@
       "post": {
         "summary": "Sign in user",
         "description": "Authenticates a user and returns a token.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCredentials"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "200 response",
+            "description": "User authenticated successfully",
             "headers": {
               "Access-Control-Allow-Origin": {
                 "schema": {
@@ -374,9 +404,19 @@
       "post": {
         "summary": "Sign up new user",
         "description": "Registers a new user in the system.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCredentials"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "200 response",
+            "description": "User registered successfully",
             "headers": {
               "Access-Control-Allow-Origin": {
                 "schema": {

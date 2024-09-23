@@ -56,15 +56,6 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
         String tableName = System.getenv("reservations_table");
         String tablesTableName = System.getenv("tables_table");
 
-
-        if (!doesTableExist(tableName)) {
-            logger.error("Table does not exist: " + tableName);
-            return new APIGatewayProxyResponseEvent()
-                    .withStatusCode(400)
-                    .withBody("Table does not exist: " + tableName);
-        }
-
-
         try {
             logger.info("passed validation ");
 
@@ -146,8 +137,7 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
 
     public boolean doesTablesTableExist(String tableName, int tableNumber) {
 
-        String tableId = String.valueOf(tableNumber);
-        boolean tableExist = false;
+       boolean tableExist = false;
 
         try {
             ScanRequest scanRequest = ScanRequest.builder()
@@ -155,17 +145,19 @@ public class PostReservationsHandler extends CognitoSupport implements RequestHa
                     .build();
 
             ScanResponse result = dynamoDB.scan(scanRequest);
-            JsonArray tablesArray = new JsonArray();
+
             for (Map<String, AttributeValue> item : result.items()) {
-                String id = item.get("id").n();
-                if (tableId.equals(id)) {
+                AttributeValue tableNumberAttr = item.get("tableNumber");
+                int tableNumberN = Integer.parseInt(tableNumberAttr.n());
+                if (tableNumberN == tableNumber) {
                     tableExist = true;
                 }
             }
             return tableExist;
         } catch (Exception e) {
-           return false;
+            return false;
         }
+
     }
 
     private boolean checkForOverlappingReservations(String tableName, String id, int tableNumber, String date, String startTime, String endTime) {

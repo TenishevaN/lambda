@@ -496,30 +496,6 @@
             }
           }
         },
-        "summary": "Sign up new user",
-        "description": "Registers a new user in the system.",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "username": {
-                    "type": "string"
-                  },
-                  "password": {
-                    "type": "string"
-                  },
-                  "email": {
-                    "type": "string"
-                  }
-                },
-                "required": ["username", "password", "email"]
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "200 response",

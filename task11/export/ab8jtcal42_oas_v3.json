@@ -17,6 +17,8 @@
   "paths": {
     "/reservations": {
       "get": {
+        "summary": "Get all reservations",
+        "description": "Description get all reservations",
         "responses": {
           "200": {
             "description": "200 response",
@@ -57,6 +59,38 @@
         }
       },
       "post": {
+        "summary": "Create a new reservation",
+        "description": "Creates a new reservation with the provided details such as guest name, table ID, and reservation time.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "guestName": {
+                    "type": "string",
+                    "description": "Name of the guest making the reservation."
+                  },
+                  "tableId": {
+                    "type": "string",
+                    "description": "Identifier of the table being reserved."
+                  },
+                  "reservationTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Date and time of the reservation."
+                  }
+                },
+                "required": [
+                  "guestName",
+                  "tableId",
+                  "reservationTime"
+                ]
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "200 response",
@@ -147,6 +181,8 @@
     },
     "/tables": {
       "get": {
+        "summary": "Retrieve all tables",
+        "description": "Fetches a list of all tables in the database, including their details such as table name and number of seats.",
         "responses": {
           "200": {
             "description": "200 response",
@@ -187,6 +223,30 @@
         }
       },
       "post": {
+        "summary": "Summary",
+        "description": "Description",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tableName": {
+                    "type": "string"
+                  },
+                  "numberOfSeats": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "tableName",
+                  "numberOfSeats"
+                ]
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "200 response",
@@ -293,7 +353,10 @@
                     "type": "string"
                   }
                 },
-                "required": ["username", "password"]
+                "required": [
+                  "username",
+                  "password"
+                ]
               }
             }
           }
@@ -381,8 +444,9 @@
         }
       }
     },
-
     "/tables/{tableId}": {
+      "summary": "Retrieve a specific table",
+      "description": "Fetches details of a specific table by table ID, including attributes such as table name and number of seats.",
       "get": {
         "parameters": [
           {
@@ -513,7 +577,11 @@
                     "type": "string"
                   }
                 },
-                "required": ["username", "password", "email"]
+                "required": [
+                  "username",
+                  "password",
+                  "email"
+                ]
               }
             }
           }
@@ -616,7 +684,9 @@
         "in": "header",
         "x-amazon-apigateway-authtype": "cognito_user_pools",
         "x-amazon-apigateway-authorizer": {
-          "x-syndicate-cognito-userpool-names": ["${booking_userpool}"],
+          "x-syndicate-cognito-userpool-names": [
+            "${booking_userpool}"
+          ],
           "type": "cognito_user_pools"
         }
       }

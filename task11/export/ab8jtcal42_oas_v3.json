@@ -567,20 +567,24 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "username": {
+                  "firstName": {
                     "type": "string"
                   },
-                  "password": {
+                  "lastName": {
                     "type": "string"
                   },
                   "email": {
                     "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
                   }
                 },
                 "required": [
-                  "username",
-                  "password",
-                  "email"
+                  "firstName",
+                  "lastName",
+                  "email",
+                  "password"
                 ]
               }
             }

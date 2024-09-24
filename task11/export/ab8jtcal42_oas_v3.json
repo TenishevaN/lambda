@@ -346,7 +346,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "username": {
+                  "email": {
                     "type": "string"
                   },
                   "password": {
@@ -354,7 +354,7 @@
                   }
                 },
                 "required": [
-                  "username",
+                  "email",
                   "password"
                 ]
               }
@@ -366,6 +366,21 @@
             "statusCode": "200",
             "responseParameters": {
               "method.response.header.Access-Control-Allow-Origin": "'*'"
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accessToken": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "accessToken"
+                  ]
+                }
+              }
             }
           },
           "400": {

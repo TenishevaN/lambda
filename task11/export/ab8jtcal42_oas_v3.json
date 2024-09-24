@@ -445,9 +445,9 @@
       }
     },
     "/tables/{tableId}": {
-      "summary": "Retrieve a specific table",
-      "description": "Fetches details of a specific table by table ID, including attributes such as table name and number of seats.",
       "get": {
+        "summary": "Retrieve a specific table",
+        "description": "Fetches details of a specific table by table ID, including attributes such as table name and number of seats.",
         "parameters": [
           {
             "name": "tableId",

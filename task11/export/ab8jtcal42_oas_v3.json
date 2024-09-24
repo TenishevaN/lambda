@@ -364,6 +364,14 @@
         "responses": {
           "200": {
            "description": "Sign-up process is successful",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string",
+                  "default": "*"
+                }
+              }
+            },
            "content": {
               "application/json": {
                 "schema": {
@@ -381,7 +389,15 @@
             }
           },
           "400": {
-            "description": "The request has succeeded. The server has processed the sign-in request, and the provided credentials (email and password) were valid."
+            "description": "The request has succeeded. The server has processed the sign-in request, and the provided credentials (email and password) were valid.",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string",
+                  "default": "*"
+                }
+              }
+            }
           }
         },
         "passthroughBehavior": "when_no_match",
@@ -598,15 +614,25 @@
         },
         "responses": {
           "200": {
-            "description": "Sign-up process is successful"
+            "description": "Sign-up process is successful",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string",
+                  "default": "*"
+                }
+              }
+            }
           },
           "400": {
-            "statusCode": "400",
-            "responseTemplates": {
-              "application/json": "{\"message\": \"Invalid password.\"}"
-            },
-            "responseParameters": {
-              "method.response.header.Access-Control-Allow-Origin": "'*'"
+            "description": "Bad request",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string",
+                  "default": "*"
+                }
+              }
             }
           }
         },

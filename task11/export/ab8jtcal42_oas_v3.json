@@ -363,11 +363,8 @@
         },
         "responses": {
           "200": {
-            "statusCode": "200",
-            "responseParameters": {
-              "method.response.header.Access-Control-Allow-Origin": "'*'"
-            },
-            "content": {
+           "description": "Sign-up process is successful",
+           "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
@@ -384,13 +381,7 @@
             }
           },
           "400": {
-            "statusCode": "400",
-            "responseTemplates": {
-              "application/json": "{\"message\": \"Invalid password.\"}"
-            },
-            "responseParameters": {
-              "method.response.header.Access-Control-Allow-Origin": "'*'"
-            }
+            "description": "The request has succeeded. The server has processed the sign-in request, and the provided credentials (email and password) were valid."
           }
         },
         "passthroughBehavior": "when_no_match",
@@ -607,10 +598,7 @@
         },
         "responses": {
           "200": {
-            "statusCode": "200",
-            "responseParameters": {
-              "method.response.header.Access-Control-Allow-Origin": "'*'"
-            }
+            "description": "Sign-up process is successful"
           },
           "400": {
             "statusCode": "400",

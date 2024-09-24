@@ -277,6 +277,27 @@
     },
     "/signin": {
       "post": {
+        "summary": "Sign in existing user",
+        "description": "Authenticates an existing user and provides a session token.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                },
+                "required": ["username", "password"]
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "200 response",
@@ -360,6 +381,7 @@
         }
       }
     },
+
     "/tables/{tableId}": {
       "get": {
         "parameters": [

@@ -362,13 +362,13 @@
           }
         },
         "responses": {
-          "default": {
+          "200": {
             "statusCode": "200",
             "responseParameters": {
               "method.response.header.Access-Control-Allow-Origin": "'*'"
             }
           },
-          "BadRequest": {
+          "400": {
             "statusCode": "400",
             "responseTemplates": {
               "application/json": "{\"message\": \"Invalid password.\"}"
@@ -587,13 +587,13 @@
           }
         },
         "responses": {
-          "default": {
+          "200": {
             "statusCode": "200",
             "responseParameters": {
               "method.response.header.Access-Control-Allow-Origin": "'*'"
             }
           },
-          "BadRequest": {
+          "400": {
             "statusCode": "400",
             "responseTemplates": {
               "application/json": "{\"message\": \"Invalid password.\"}"

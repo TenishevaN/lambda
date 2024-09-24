@@ -379,21 +379,21 @@
           }
         },
         "passthroughBehavior": "when_no_match",
-        "type": "aws_proxy"
-      },
-      "x-amazon-apigateway-integration": {
-        "httpMethod": "POST",
-        "uri": "arn:aws:apigateway:eu-central-1:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-central-1:905418349556:function:api_handler/invocations",
-        "responses": {
-          "default": {
-            "statusCode": "200",
-            "responseParameters": {
-              "method.response.header.Access-Control-Allow-Origin": "'*'"
+        "type": "aws_proxy",
+        "x-amazon-apigateway-integration": {
+          "httpMethod": "POST",
+          "uri": "arn:aws:apigateway:eu-central-1:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-central-1:905418349556:function:api_handler/invocations",
+          "responses": {
+            "default": {
+              "statusCode": "200",
+              "responseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'"
+              }
             }
-          }
-        },
-        "passthroughBehavior": "when_no_match",
-        "type": "aws_proxy"
+          },
+          "passthroughBehavior": "when_no_match",
+          "type": "aws_proxy"
+        }
       },
       "options": {
         "responses": {
@@ -604,21 +604,21 @@
           }
         },
         "passthroughBehavior": "when_no_match",
-        "type": "aws_proxy"
-      },
-      "x-amazon-apigateway-integration": {
-        "httpMethod": "POST",
-        "uri": "arn:aws:apigateway:eu-central-1:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-central-1:905418349556:function:api_handler/invocations",
-        "responses": {
-          "default": {
-            "statusCode": "200",
-            "responseParameters": {
-              "method.response.header.Access-Control-Allow-Origin": "'*'"
+        "type": "aws_proxy",
+        "x-amazon-apigateway-integration": {
+          "httpMethod": "POST",
+          "uri": "arn:aws:apigateway:eu-central-1:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-central-1:905418349556:function:api_handler/invocations",
+          "responses": {
+            "default": {
+              "statusCode": "200",
+              "responseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'"
+              }
             }
-          }
-        },
-        "passthroughBehavior": "when_no_match",
-        "type": "aws_proxy"
+          },
+          "passthroughBehavior": "when_no_match",
+          "type": "aws_proxy"
+        }
       },
       "options": {
         "responses": {
